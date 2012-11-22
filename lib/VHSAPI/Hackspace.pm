@@ -4,6 +4,7 @@ use Moose;
 use VHSAPI::Datapoint;
 use methods-invoker;
 use Net::Twitter::Lite;
+use Acme::Scurvy::Whoreson::BilgeRat;
 
 has 'name' => (is => 'rw', isa => 'Str', required => 1);
 has 'title' => (is => 'rw', isa => 'Str', required => 1);
@@ -52,7 +53,10 @@ method notify ($dp) {
     unless ($nt->authorized) {
         die "Twitter oauth failed!";
     }
-    my $result = eval { $nt->update("The @{[$dp->name]} is now @{[$dp->value]}.") };
+    my $insultgenerator = Acme::Scurvy::Whoreson::BilgeRat->new(
+      language => 'pirate'
+    );
+    my $result = eval { $nt->update("The @{[$dp->name]} is now @{[$dp->value]}, you $insultgenerator.") };
     if ($@) {
         debug "Tweet failed: $@";
     }
