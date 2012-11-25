@@ -1,0 +1,8 @@
+$(function() {
+    $("#[% space.name %]-[% datapoint.name %]").append(
+        '<span class="datavalue">[% datapoint.value %]</span>'
+        + ' <span class="updatetime">last updated: '
+        + '<abbr class="timeago" title="[% datapoint.datetime.iso8601 %]">'
+        + '[% datapoint.datetime %]</abbr></span>'
+    ); 
+});

@@ -44,6 +44,15 @@ get '/s/:spacename/data/:dataname/update' => sub {
     return { status => 'OK', result => $dp->to_hash };
 };
 
+get '/s/:spacename/data/:dataname.js' => sub {
+    my $space = vars->{space} or redirect '/';
+    content_type 'application/javascript';
+    template 'data-widget', {
+        space => $space,
+        datapoint => $space->datapoint(params->{dataname}),
+     }, {layout => undef };
+};
+
 get '/s/:spacename/data/:dataname' => sub {
     my $space = vars->{space} or redirect '/';
     template 'data', { datapoint => $space->datapoint(params->{dataname}) };

@@ -1,7 +1,7 @@
 <div class="row">
   <h1>Hackspace.ca API</h1>
   [% IF datapoint %]
-    <h2>[% space.title %] - [% datapoint.name %]<h2>
+    <h2>[% space.title %] - [% datapoint.name %]</h2>
     <div class="well">
       <h3>Current value: [% datapoint.value %]
         <small>
@@ -9,6 +9,14 @@
         </small>
       </h3>
       <p class="lead">You can also fetch this value as <a href="[%datapoint.uri %].json">JSON</a> or <a href="[% datapoint.uri %].txt">text</a>.</p>
+      <p>To dynamically embed the value of this datapoint in your site, include the following code snippet:
+<pre>
+  &lt;div id="[% space.name %]-[% datapoint.name %]">&lt;/div>
+  &lt;script src="http://api.hackspace.ca/s/[% space.name %]/data/[% datapoint.name %].js" >&lt;/script>
+</pre>
+  <em>(You will need jQuery loaded on the including page.  You could also consider using <a href="http://timeago.yarp.com/">Timeago.js</a> to improve the formatting of the date.)</em>
+</p>
+                
     </div>
   [% ELSE %]
     <div class="alert-warning">
