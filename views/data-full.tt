@@ -1,0 +1,4 @@
+<div class="row">
+  <h1>The [% space.title %] [% datapoint.name %] is [% datapoint.value %].</h1>
+          Last updated: <abbr class="timeago" title="[% datapoint.datetime.iso8601 %]">[% datapoint.datetime %]</abbr>
+</div>
