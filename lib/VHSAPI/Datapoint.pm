@@ -1,12 +1,14 @@
 package VHSAPI::Datapoint;
 use Moose;
 use Dancer ':syntax';
+use DateTime;
 use methods-invoker;
 
 has 'name' => (is => 'rw', isa => 'Str', required => 1);
 has 'value' => (is => 'rw', isa => 'Str', required => 1);
 has 'last_updated' => (is => 'rw', isa => 'Int', required => 1);
 has 'space' => (is => 'rw', isa => 'Object');
+has 'datetime' => (is => 'ro', isa => 'Object', lazy_build => 1);
 
 extends 'VHSAPI::Object';
 
@@ -33,3 +35,5 @@ method update ($value) {
 
     $->space->notify($self);
 }
+
+method _build_datetime { DateTime->from_epoch(epoch => $->last_updated) }

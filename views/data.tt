@@ -3,7 +3,11 @@
   [% IF datapoint %]
     <h2>[% space.title %] - [% datapoint.name %]<h2>
     <div class="well">
-      <h3>Current value: [% datapoint.value %]</h3>
+      <h3>Current value: [% datapoint.value %]
+        <small>
+          Last updated: <abbr class="timeago" title="[% datapoint.datetime.iso8601 %]">[% datapoint.datetime %]</abbr>
+        </small>
+      </h3>
       <p class="lead">You can also fetch this value as <a href="[%datapoint.uri %].json">JSON</a> or <a href="[% datapoint.uri %].txt">text</a>.</p>
     </div>
   [% ELSE %]

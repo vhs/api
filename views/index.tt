@@ -15,7 +15,7 @@
         <tr class="table-striped">
           <td><a href="[% space.uri %]/data/[% point.name %]">[% point.name %]</a></td>
           <td>[% point.value %]</td>
-          <td>[% point.last_updated %]</td>
+          <td><abbr class="timeago" title="[% point.datetime.iso8601 %]">[% point.datetime %]</abbr></td>
         </tr>
       [% END %]
     </table>
