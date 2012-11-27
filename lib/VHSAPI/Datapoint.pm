@@ -36,4 +36,8 @@ method update ($value) {
     $->space->notify($self);
 }
 
-method _build_datetime { DateTime->from_epoch(epoch => $->last_updated) }
+method _build_datetime {
+    my $dt = DateTime->from_epoch(epoch => $->last_updated);
+    $dt->set_time_zone('America/Vancouver');
+    return $dt;
+}
