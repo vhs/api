@@ -41,7 +41,6 @@ method add_datapoint ($name, $value) {
 }
 
 method notify ($dp) {
-    return 1; # Disabled until we de-bounce the sensor
     my $T = config->{Twitter};
     my $nt = Net::Twitter::Lite->new(
         useragent       => 'VHSAPI',
