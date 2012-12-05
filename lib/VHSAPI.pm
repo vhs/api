@@ -55,7 +55,8 @@ get '/s/:spacename/data/:dataname.js' => sub {
 
 get '/s/:spacename/data/:dataname/fullpage' => sub {
     my $space = vars->{space} or redirect '/';
-    template 'data-full', { datapoint => $space->datapoint(params->{dataname}) };
+    template 'data-full', { datapoint => $space->datapoint(params->{dataname}) },
+                          {layout => undef};
 };
 
 get '/s/:spacename/data/:dataname' => sub {
