@@ -37,10 +37,14 @@ get '/s/:spacename/data/:dataname/feed' => sub {
         link => 'http://api.hackspace.ca',
         description => "Datapoint information",
     );
+    my $w3c = DateTime::Format::W3CDTF->new;
     rss->add_item(
         title => $dp->name . " is " . $dp->value,
         link => $dp->url,
         description => $space->title . " datapoint '@{[$dp->name]}' is now '@{[$dp->value]}' as of @{[$dp->datetime]}.",
+        dc => {
+            date => $w3c->format_datetime($dp->datetime),
+        },
     );
     rss_output;
 };
