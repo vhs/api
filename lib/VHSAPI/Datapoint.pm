@@ -22,6 +22,7 @@ method All_for_hackspace ($class: $space) {
 }
 
 method uri     { $->space->uri . '/data/' . $->name }
+method url     { "http://api.hackspace.ca" . $->uri }
 method to_hash { return { map { $_ => $->$_ } qw/name value last_updated/ } }
 
 method update ($value) {

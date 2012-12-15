@@ -1,5 +1,6 @@
 package VHSAPI;
 use Dancer ':syntax';
+use Dancer::Plugin::XML::RSS;
 use VHSAPI::Redis;
 use VHSAPI::Hackspace;
 
@@ -26,6 +27,22 @@ get '/s/:spacename/data/:dataname.json' => sub {
     my $space = vars->{space} or redirect '/';
     my $dp = $space->datapoint(params->{dataname});
     return $dp->to_hash;
+};
+
+get '/s/:spacename/data/:dataname/feed' => sub {
+    my $space = vars->{space} or redirect '/';
+    my $dp = $space->datapoint(params->{dataname});
+    rss->channel(
+        title => $space->title . " - " . $dp->name,
+        link => 'http://api.hackspace.ca',
+        description => "Datapoint information",
+    );
+    rss->add_item(
+        title => $dp->name . " is " . $dp->value,
+        link => $dp->url,
+        description => $space->title . " datapoint '@{[$dp->name]}' is now '@{[$dp->value]}' as of @{[$dp->datetime]}.",
+    );
+    rss_output;
 };
 
 get '/s/:spacename/data/:dataname/update' => sub {
