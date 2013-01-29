@@ -1,0 +1,4 @@
+#!/bin/bash
+
+/home/lukec/perl5/perlbrew/perls/perl-5.16.1/bin/perl /home/lukec/src/vhs-door/vhsapi/bin/app.pl \
+                2>&1 > /home/lukec/src/vhs-door/vhsapi/server.log
