@@ -23,6 +23,23 @@ get '/' => sub {
     template 'index';
 };
 
+get '/s/:spacename/data/history/:dataname.json' => sub {
+    my $space = vars->{space} or redirect '/';
+    my $dp = $space->datapoint(params->{dataname});
+    my $offset = params->{offset} || 0;
+    return { error => "Bad offset" } unless $offset =~ m/^\d+$/;
+    my $limit = params->{limit}   || 100;
+    return { error => "Bad limit" } unless $limit =~ m/^\d+$/;
+    $limit = 100 if $limit > 100;
+    my $h = $dp->history($offset, $limit);
+    return {
+        offset => $offset,
+        limit  => $limit,
+        count  => scalar(@$h),
+        data   => $h,
+    };
+};
+
 get '/s/:spacename/data/:dataname.json' => sub {
     my $space = vars->{space} or redirect '/';
     my $dp = $space->datapoint(params->{dataname});
