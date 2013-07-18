@@ -46,6 +46,13 @@ get '/s/:spacename/data/:dataname.json' => sub {
     return $dp->to_hash;
 };
 
+get '/s/:spacename/data/:dataname.txt' => sub {
+    my $space = vars->{space} or redirect '/';
+    my $dp = $space->datapoint(params->{dataname});
+    content_type 'text/plain';
+    return $dp->value;
+};
+
 get '/s/:spacename/data/:dataname/feed' => sub {
     my $space = vars->{space} or redirect '/';
     my $dp = $space->datapoint(params->{dataname});
