@@ -37,6 +37,7 @@ method add_datapoint ($name, $value) {
         last_updated => time(),
     );
     $->redis->set($->name . '-data-' . $name, $dp->freeze);
+    $->redis->sadd($->name . '-datas');
     return $->datapoint($name);
 }
 
