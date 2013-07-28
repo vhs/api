@@ -1,0 +1,15 @@
+VHS API
+
+VHS API is a simple HTTP interface to store values from various sensors.  VHS API has a notion of a "Hackspace" which may have various "Datapoints".  Each "Datapoint" has a current value, a time it was last set, and a full history of changes.
+
+Contact @lukec for more details or check out the VHS wiki: https://vancouver.hackspace.ca/doku.php?id=servers
+
+
+
+INSTALL:
+
+Install these ubuntu packages: libexpat1-dev libssl-dev daemontools daemontools-run
+
+Install necessary Perl packages using Carton: carton install
+
+

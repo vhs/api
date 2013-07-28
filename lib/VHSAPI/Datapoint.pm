@@ -1,6 +1,7 @@
 package VHSAPI::Datapoint;
 use Moose;
 use Dancer ':syntax';
+use Dancer::Plugin::Redis;
 use DateTime;
 use methods-invoker;
 
@@ -16,8 +17,8 @@ method All_for_hackspace ($class: $space) {
     my $name = $space->name;
     return [
         map { $_->space($space); $_ }
-          map { $class->thaw( $class->redis->get("$name-data-$_") ) }
-            $class->redis->smembers("$name-datas")
+          map { $class->thaw( redis->get("$name-data-$_") ) }
+            redis->smembers("$name-datas")
     ];
 }
 
@@ -33,8 +34,8 @@ method update ($value) {
     $->last_updated(time);
     debug $->freeze;
     my $frozen = $->freeze;
-    $->redis->set($->space->name . '-data-' . $->name, $frozen);
-    $->redis->lpush($->history_key, $frozen);
+    redis->set($->space->name . '-data-' . $->name, $frozen);
+    redis->lpush($->history_key, $frozen);
 
     $->space->notify($self);
 }
@@ -46,7 +47,7 @@ method _build_datetime {
 }
 
 method history ($offset, $limit) {
-    my $frozen = $->redis->lrange($->history_key, $offset, $offset + $limit - 1);
+    my $frozen = redis->lrange($->history_key, $offset, $offset + $limit - 1);
     my @data;
     for my $f (@$frozen) {
         push @data, ref($self)->thaw($f)->to_hash;

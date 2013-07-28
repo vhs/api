@@ -1,0 +1,13 @@
+requires 'Dancer';
+requires 'Starman';
+requires 'Plack';
+requires 'YAML';
+requires 'Dancer::Plugin::Redis';
+requires 'Dancer::Plugin::XML::RSS';
+requires 'Template';
+requires 'Moose';
+requires 'methods';
+requires 'Net::Twitter::Lite';
+requires 'Acme::Scurvy::Whoreson::BilgeRat';
+requires 'Module::Refresh';
+requires 'Clone';

@@ -1,5 +1,6 @@
 package VHSAPI::Hackspace;
 use Dancer ':syntax';
+use Dancer::Plugin::Redis;
 use Moose;
 use VHSAPI::Datapoint;
 use methods-invoker;
@@ -14,14 +15,14 @@ extends 'VHSAPI::Object';
 
 method uri { '/s/' . $->name }
 
-method By_name ($class: $name) { $class->thaw( $class->redis->get($name) ) }
+method By_name ($class: $name) { $class->thaw( redis->get($name) ) }
 
 method _build_datas { VHSAPI::Datapoint->All_for_hackspace($self) }
 
 method datapoint ($name) {
     my $keyname = $->name . '-data-' . $name;
     debug "loading @{[$->name]} datapoint $name from $keyname";
-    my $dp =  VHSAPI::Datapoint->thaw( $->redis->get($keyname) );
+    my $dp =  VHSAPI::Datapoint->thaw( redis->get($keyname) );
     unless ($dp) {
         debug "Couldn't find datapoint at $keyname";
         return undef;
@@ -36,8 +37,8 @@ method add_datapoint ($name, $value) {
         value => $value,
         last_updated => time(),
     );
-    $->redis->set($->name . '-data-' . $name, $dp->freeze);
-    $->redis->sadd($->name . '-datas');
+    redis->set($->name . '-data-' . $name, $dp->freeze);
+    redis->sadd($->name . '-datas', $name);
     return $->datapoint($name);
 }
 

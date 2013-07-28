@@ -1,13 +1,11 @@
 package VHSAPI;
 use Dancer ':syntax';
 use Dancer::Plugin::XML::RSS;
-use VHSAPI::Redis;
 use VHSAPI::Hackspace;
 
 our $VERSION = '0.1';
 
 hook before => sub {
-    VHSAPI::Redis->Init;
     if (request->path =~ m#^/s/(\w+)#) {
         var space => VHSAPI::Hackspace->By_name($1);
     }

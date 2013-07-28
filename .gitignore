@@ -1,1 +1,6 @@
+.carton
+local
+logs
+server.log
 config.yml
+*.sw[po]

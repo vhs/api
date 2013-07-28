@@ -1,0 +1,21 @@
+upstream hackspace_api {
+    server 127.0.0.1:3000;
+}
+
+server {
+    server_name www.isvhsopen.com isvhsopen.com;
+    location / {
+        proxy_pass http://hackspace_api/s/vhs/data/door/fullpage;
+        break;
+    }
+}
+
+server {
+    server_name api.hackspace.ca vhs.recollect.net;
+    keepalive_timeout 0;
+
+    location / {
+	proxy_pass http://hackspace_api;
+	break;
+    }
+}
