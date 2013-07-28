@@ -27,7 +27,7 @@
   </div>
   <footer class="footer">
     <div class="container">
-    Created by <a href="http://twitter.com/lukec">@lukec</a> for <a href="http://vancouver.hackspace.ca">Vancouver Hack Space</a> using <a href="http://perldancer.org/">Dancer</a>.
+    Created by <a href="http://twitter.com/lukec">@lukec</a> for <a href="http://vancouver.hackspace.ca">Vancouver Hack Space</a> using <a href="http://perldancer.org/">Dancer</a>.  The code is <a href="http://github.com/vhs/api">up on Github</a>!
     </div>
   </footer>
 </body>
