@@ -77,6 +77,7 @@ get '/s/:spacename/data/:dataname/update' => sub {
     my $dataname = params->{dataname};
     my $value    = params->{value};
     my $dp    = $space->datapoint($dataname);
+    $value =~ s/[^\w \-]//g;
     if ($dp) {
         debug "Updating datapoint";
         $dp->update($value);
