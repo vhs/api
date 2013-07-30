@@ -2,8 +2,9 @@ package VHSAPI;
 use Dancer ':syntax';
 use Dancer::Plugin::XML::RSS;
 use VHSAPI::Hackspace;
+use HTML::Entities;
 
-our $VERSION = '0.1';
+our $VERSION = '0.10000001';
 
 hook before => sub {
     if (request->path =~ m#^/s/(\w+)#) {
@@ -98,13 +99,13 @@ get '/s/:spacename/data/:dataname.js' => sub {
 
 get '/s/:spacename/data/:dataname/fullpage' => sub {
     my $space = vars->{space} or redirect '/';
-    template 'data-full', { datapoint => $space->datapoint(params->{dataname}) },
+    template 'data-full', { datapoint => encode_entities($space->datapoint(params->{dataname})) },
                           {layout => undef};
 };
 
 get '/s/:spacename/data/:dataname' => sub {
     my $space = vars->{space} or redirect '/';
-    template 'data', { datapoint => $space->datapoint(params->{dataname}) };
+    template 'data', { datapoint => encode_entities($space->datapoint(params->{dataname})) };
 };
 
 
