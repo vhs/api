@@ -76,8 +76,13 @@ get '/s/:spacename/data/:dataname/update' => sub {
     my $space = vars->{space} or redirect '/';
     my $dataname = params->{dataname};
     my $value    = params->{value};
+
+    # Sanitize data names and values
+    my $sanitize_rx = qr/[^A-Za-z0-9_\-]/;
+    $dataname =~ s/$sanitize_rx//g;
+    $value    =~ s/$sanitize_rx//g;
+
     my $dp    = $space->datapoint($dataname);
-    $value =~ s/[^A-Za-z_\-]//g;
     if ($dp) {
         debug "Updating datapoint";
         $dp->update($value);
