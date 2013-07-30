@@ -4,8 +4,6 @@ upstream hackspace_api {
 
 server {
     server_name www.isvhsopen.com isvhsopen.com;
-    deny 216.81.62.52;
-    deny 70.71.133.59;
     location / {
         proxy_pass http://hackspace_api/s/vhs/data/door/fullpage;
         break;
@@ -15,6 +13,9 @@ server {
 server {
     server_name api.hackspace.ca vhs.recollect.net;
     keepalive_timeout 0;
+    deny 216.81.62.52;
+    deny 70.71.133.59;
+    deny 209.139.197.120;
 
     location / {
 	proxy_pass http://hackspace_api;
