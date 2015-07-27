@@ -4,7 +4,11 @@ VHS API is a simple HTTP interface to store values from various sensors.  VHS AP
 
 Contact @lukec for more details or check out the VHS wiki: https://vancouver.hackspace.ca/doku.php?id=servers
 
+DEPENDENCIES:
 
+- PERL, something > 5'ish
+- PERL's infamous `carton`
+- A Redis server, persumably on 127.0.0.1
 
 INSTALL:
 
@@ -29,11 +33,24 @@ This will launch the app listening on port 3000.
 
 A web frontend (nginx) will listen on port 80, and then proxy traffic for api.hackspace.ca or isvhsopen.com to port 3000.
 
+DOCKER:
+
+Build a docker image with `docker build .`
+
+Start that docker image with `docker run -d <image id>`
+
+
 
 
 HOW TO HACK ON THIS:
 
 It should be fairly easy to get the Dancer app running in your own machine. This will let you develop changes and test them out.
+
+* Clone this repo `git clone git@github.com/vhs/api`
+* Install the deps `carton install`
+
+
+DEPLOYING:
 
 When it comes time to deploy your changes live push them to Github and then you can ssh into vhs@home.hackspace.ca to deploy them.  (contact lukec or robbat for access).
 
