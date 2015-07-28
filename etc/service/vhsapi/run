@@ -3,6 +3,4 @@
 VHSAPI=/opt/api
 
 cd $VHSAPI
-exec 2>&1 \
-  setuidgid api \
-    $PERLBIN/carton exec $VHSAPI/bin/app.pl >> $VHSAPI/server.log 2>&1
+exec chpst -u api carton exec $VHSAPI/bin/app.pl

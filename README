@@ -39,7 +39,7 @@ Build a docker image with `docker build .`
 
 Start that docker image with `docker run -d <image id>`
 
-
+Update carton vendors for packages with `carton bundle --no-fatpack`
 
 
 HOW TO HACK ON THIS:

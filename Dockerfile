@@ -1,4 +1,4 @@
-FROM phusion/baseimage
+FROM phusion/baseimage:0.9.17
 
 # Best practics ubuntu base image: https://github.com/phusion/baseimage-docker
 
@@ -8,6 +8,6 @@ ADD . /opt/api
 
 RUN /opt/api/scripts/docker_install.sh
 
-EXPOSE 3000 80
+EXPOSE 3000
 
 
