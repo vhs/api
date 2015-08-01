@@ -1,5 +1,8 @@
+var async = require('async');
 
 var Datapoint = require('./datapoint');
+var Spaces = require('./spaces');
+
 
 var routes = function(server) {
 
@@ -7,9 +10,41 @@ server.route({
     method: 'GET',
     path: '/',
     handler: function (request, reply) {
-      server.render("index",{},{}, function(err, rendered) {
+      var redisClient = request.server.plugins['hapi-redis'].client;
+      var context = {};
+      var flow = [];
+
+      flow.push(function(flowCb) {
+        Spaces.all(redisClient, function(err, spaces) {
+          if (err) return flowCb(err);
+          context.spaces = spaces;
+          flowCb();
+        });
+      });
+
+      flow.push(function(flowCb) {
+        async.each(
+          context.spaces,
+          function(item, eachCb) {
+            console.log(item);
+            Datapoint.all(redisClient, item.name, function(err, members) {
+              console.log(err);
+              if (err) return eachCb(err);
+              item.members = members;
+              eachCb();
+            })
+          },
+          flowCb
+        );
+      });
+
+      async.series(flow, function(err) {
         if (err) return reply(err);
-        reply(rendered);
+        console.log(JSON.stringify(context.spaces));
+        server.render("index", context, {}, function(err, rendered) {
+          if (err) return reply(err);
+          reply(rendered);
+        });  
       });
     }
 });
@@ -20,13 +55,16 @@ server.route({
   path: '/s/{spacename}/data/history/{dataname}.json',
   handler: function(request, reply) {
     var redisClient = request.server.plugins['hapi-redis'].client;
-    datapoint.history(redisClient, request.params.spacename, request.params.dataname, function(err, datapoints) {
+    var limit = 100;
+    var offset = 0;
+
+    Datapoint.history(redisClient, request.params.spacename, request.params.dataname, offset, limit, function(err, datapoints) {
       if (err) {
-        reply("404");
+        reply(404);
       } else {
         reply({
-          "offset":"0",
-          "limit":"100",
+          "offset": offset,
+          "limit": limit,
           "count": datapoints.length,
           "data": datapoints
         });
@@ -41,9 +79,9 @@ server.route({
   path: '/s/{spacename}/data/{dataname}.json',
   handler: function(request, reply) {
     var redisClient = request.server.plugins['hapi-redis'].client;
-    datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
+    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
       if (err) {
-        reply("404");
+        reply(404);
       } else {
         reply(data);  
       }
@@ -57,9 +95,9 @@ server.route({
   path: '/s/{spacename}/data/{dataname}.txt',
   handler: function(request, reply) {
     var redisClient = request.server.plugins['hapi-redis'].client;
-    datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
+    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
       if (err) {
-        reply("404");
+        reply(404);
       } else {
         reply(data.value);
       }
@@ -73,9 +111,9 @@ server.route({
   path: '/s/{spacename}/data/{dataname}/feed',
   handler: function(request, reply) {
     var redisClient = request.server.plugins['hapi-redis'].client;
-    datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
+    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
       if (err) {
-        reply("404");
+        reply(404);
       } else {
         reply("RSS FEED PEW PEW PEW");
       }
@@ -90,11 +128,15 @@ server.route({
   path: '/s/{spacename}/data/{dataname}/update',
   handler: function(request, reply) {
     var redisClient = request.server.plugins['hapi-redis'].client;
-    datapoint.set(redisClient, request.params.spacename, request.params.dataname, request.params.value, function(err, data) {
+    if (request.url.query.value === undefined) {
+      return reply(403);
+    }
+    Datapoint.set(redisClient, request.params.spacename, request.params.dataname, request.url.query.value, function(err, data) {
       if (err) {
-        reply("404");
+        console.log(err);
+        reply(404);
       } else {
-        reply({"status":"OK","result":{"last_updated":1438457954,"value":"cat","name":"meow"}})
+        reply({"status":"OK","result":data})
       }
     });
   }
@@ -106,11 +148,11 @@ server.route({
   path: '/s/{spacename}/data/{dataname}.js',
   handler: function(request, reply) {
     var redisClient = request.server.plugins['hapi-redis'].client;
-    datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
+    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
       if (err) {
-        reply("404");
+        reply(404);
       } else {
-         server.render("data-widget", data, {}, function(err, rendered) {
+         server.render("data-widget", {data: data}, {}, function(err, rendered) {
           if (err) return reply(err);
           reply(rendered);
         });
@@ -125,11 +167,15 @@ server.route({
   path: '/s/{spacename}/data/{dataname}/fullpage',
   handler: function(request, reply) {
     var redisClient = request.server.plugins['hapi-redis'].client;
-    datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
+    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
       if (err) {
-        reply("404");
+        reply(404);
       } else {
-        server.render("data-full", data, {}, function(err, rendered) {
+        var renderContext = {
+          data: data,
+          space: {name: "vhs"}
+        };
+        server.render("data-full", renderContext, {}, function(err, rendered) {
           if (err) return reply(err);
           reply(rendered);
         });
@@ -144,11 +190,12 @@ server.route({
   path: '/s/{spacename}/data/{dataname}',
   handler: function(request, reply) {
      var redisClient = request.server.plugins['hapi-redis'].client;
-    datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
+    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
       if (err) {
-        reply("404");
+        reply(404);
       } else {
-        server.render("data", data, {}, function(err, rendered) {
+        console.log(data);
+        server.render("data", {data: data}, {}, function(err, rendered) {
           if (err) return reply(err);
           reply(rendered);
         });

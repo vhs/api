@@ -1,8 +1,9 @@
 var async = require('async');
+var _ = require('underscore');
 
-var spaceRegex = /[^A-Za-z0-9_\-]/
-var nameRegex = /[^A-Za-z0-9_\-]/
-var valueRegex = /[^A-Za-z0-9_\-]/
+var spaceRegex = /[^A-Za-z0-9_\-]*/
+var nameRegex = /[^A-Za-z0-9_\-]*/
+var valueRegex = /[^A-Za-z0-9_\-]*/
 
 var Datapoint = {
 
@@ -76,10 +77,20 @@ var Datapoint = {
     });
 
     flow.push(function(flowCb) {
-      redis.smembers(space + "datas", function(err, members) {
+      redis.smembers(Datapoint._datasKey(space), function(err, members) {
         if (err) return flowCb(err);
-        //TODO lookup each key
-        flowCb();
+        context.members = [];
+        async.each(
+          members,
+          function(member, eachCb) {
+            Datapoint.get(redis, space, member, function(err, value) {
+              if (err) return eachCb(err);
+              context.members.push(value);
+              eachCb();
+            });
+          },
+          flowCb
+        );
       });
     });
 
@@ -101,8 +112,24 @@ var Datapoint = {
   },
 
   // Get a datapoint
+  // cb(null, {value:"nope", name:"coffee", last_updated: 0});
   get: function(redis, space, name, cb) {
-    cb(null, {value:"nope", name:"coffee", last_updated: 0});
+    var flow = [];
+    var context = {};
+
+    flow.push(function(flowCb) {
+      redis.get(Datapoint._dataKey(space, name), function(err, _value) {
+        if (err) return flowCb(err);
+        var value = JSON.parse(_value);
+        context.value = value;
+        flowCb();
+      });
+    });
+
+    async.series(flow, function(err) {
+      if (err) return cb(err);
+      cb(null, Datapoint.extendDataPoint(space, context.value));
+    });
   },
 
   // Set a datapoint
@@ -114,7 +141,7 @@ var Datapoint = {
     flow.push(function(flowCb) {
       Datapoint.has(redis, space, name, function(err, hasName) {
         if (err) return flowCb(err);
-        if (hasName !== true) return flowCb(new Error("404"));
+        context.hasName = hasName;
         flowCb();
       });
     });
@@ -123,6 +150,13 @@ var Datapoint = {
     flow.push(function(flowCb) {
       Datapoint.get(redis, space, name, function(err, currentValue) {
         if (err) return flowCb(err);
+        if (currentValue === null) {
+          currentValue = {
+            name: name,
+            value: null,
+            last_updated: 0
+          };
+        }
         if (currentValue.value == value) return flowCb(new Error("Same value, nothing to do."));
         context.currentValue = currentValue;
         flowCb();
@@ -132,25 +166,61 @@ var Datapoint = {
     // update 
     flow.push(function(flowCb) {
       context.currentValue.value = value;
-      context.currentValue.last_updated = Date.Now();
-      redis.set(space + "-data-" + name, JSON.serialize(context.currentValue), flowCb);
+      context.currentValue.last_updated = parseInt(new Date().getTime()/1000, 10);
+      context._value = JSON.stringify(context.currentValue);
+      
+      redis.set(Datapoint._dataKey(space, name), context._value, function(err) {
+        if (err) return flowCb(err);
+        flowCb();
+      });
     });
 
     // push history
     flow.push(function(flowCb) {
-      redis.lpush(space + "-datahistory-" + name, JSON.serialize(context.currentValue), flowCb);
+      redis.lpush(Datapoint._dataHistoryKey(space, name), context._value, flowCb);
     });
 
-    async.serial(flow, function(err) {
-      cb(err);
+    // push to members if not 
+    flow.push(function(flowCb) {
+      if (context.hasName === false) {
+        redis.sadd(Datapoint._datasKey(space), name, flowCb);
+      } else {
+        async.setImmediate(function () {
+          callback();
+        });
+      }
+    })
+
+    async.series(flow, function(err) {
+      if (err) return cb(err);
+      cb(null, Datapoint.extendDataPoint(space, context.currentValue));
     });
   },
 
   // get the last 100 data points
   history: function(redis, space, name, offset, limit, cb) {
     var flow = [];
-    //redis.lrange(Datapoint._dataHistoryKey, offset, offset + limit - 1, function());
-    cb(null, []);
+    var context = {};
+    flow.push(function(flowCb) {
+      console.log([space, name, offset, limit, cb]);
+      redis.lrange(Datapoint._dataHistoryKey(space, name), offset, offset + limit - 1, function(err, history) {
+        if (err) return flowCb(err);
+        context.history = history;
+        flowCb();
+      });
+    });
+    
+    async.series(flow, function(err) {
+      if (err) return cb(err);
+      cb(null, context.history);
+    });
+  },
+
+  extendDataPoint: function(space, datapoint) {
+    datapoint.space = space;
+    datapoint.datetime = new Date(datapoint.last_updated*1000).toISOString();
+    datapoint.uri = "/s/" + space + "/data/" + datapoint.name;
+    return datapoint;
   }
 }
 

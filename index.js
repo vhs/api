@@ -13,8 +13,6 @@ var redisOptions = {
 };
 
 var server = new Hapi.Server({});
-
-
  
 handlebars.registerHelper(layouts(handlebars));
 handlebars.registerPartial('main', fs.readFileSync(__dirname + '/views/layouts/main.html', 'utf8'));
@@ -34,6 +32,17 @@ server.register({
 server.connection({ port: 8080 });
 
 require('./src/routes')(server);
+
+// static assets
+server.route({
+    method: 'GET',
+    path: '/{param*}',
+    handler: {
+        directory: {
+            path: 'public'
+        }
+    }
+});
 
 server.start(function () {
     console.log('Server running at:', server.info.uri);

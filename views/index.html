@@ -7,21 +7,21 @@
     </p>
   </div>
   <h2>Hackerspace Data</h2>
-  [% FOREACH space IN hackspaces %]
-    <h3>[% space.title %]</h3>
+  {{#each spaces}}
+    <h3>{{name}}</h3>
     <table class="table">
       <tr>
         <th>Data point</th><th>Value</th><th>Updated</th>
       </tr>
-      [% FOREACH point IN space.datas %]
+      {{#each members}}
         <tr class="table-striped">
-          <td><a href="[% space.uri %]/data/[% point.name %]">[% point.name %]</a></td>
-          <td>[% point.value %]</td>
-          <td><abbr class="timeago" title="[% point.datetime.iso8601 %]">[% point.datetime %]</abbr></td>
+          <td><a href="{{../name}}/data/{{name}}"{{>name}}</a></td>
+          <td>{{value}}</td>
+          <td><abbr class="timeago" title="[% point.datetime.iso8601 %]">{{last_update}}</abbr></td>
         </tr>
-      [% END %]
+      {{/each}}
     </table>
-  [% END %]
+  {{/each}}
 </div>
     {{/content}}
 {{/extend}}
