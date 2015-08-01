@@ -7,7 +7,10 @@ server.route({
     method: 'GET',
     path: '/',
     handler: function (request, reply) {
-        reply('Index!');
+      server.render("index",{},{}, function(err, rendered) {
+        if (err) return reply(err);
+        reply(rendered);
+      });
     }
 });
 
@@ -107,7 +110,10 @@ server.route({
       if (err) {
         reply("404");
       } else {
-        reply("render some template");
+         server.render("data-widget", data, {}, function(err, rendered) {
+          if (err) return reply(err);
+          reply(rendered);
+        });
       }
     });
   }
@@ -123,7 +129,10 @@ server.route({
       if (err) {
         reply("404");
       } else {
-        reply("render some template");
+        server.render("data-full", data, {}, function(err, rendered) {
+          if (err) return reply(err);
+          reply(rendered);
+        });
       }
     });
   }
@@ -139,7 +148,10 @@ server.route({
       if (err) {
         reply("404");
       } else {
-        reply("render some template");
+        server.render("data", data, {}, function(err, rendered) {
+          if (err) return reply(err);
+          reply(rendered);
+        });
       }
     });
   }

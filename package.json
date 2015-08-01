@@ -17,7 +17,11 @@
   },
   "homepage": "https://github.com/vhs/api#readme",
   "dependencies": {
+    "async": "^1.4.0",
+    "handlebars": "^3.0.3",
+    "handlebars-layouts": "^3.1.0",
     "hapi": "^8.8.1",
-    "hapi-redis": "^5.0.0"
+    "hapi-redis": "^5.0.0",
+    "underscore": "^1.8.3"
   }
 }
