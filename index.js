@@ -31,7 +31,7 @@ server.register({
   console.log("Redis Registered");
 });
 
-server.connection({ port: 3000 });
+server.connection({ port: 8080 });
 
 require('./src/routes')(server);
 
