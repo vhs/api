@@ -1,0 +1,23 @@
+{
+  "name": "vhsapi",
+  "version": "1.0.0",
+  "description": "A simple metric'ish API with no auth backed by Redis",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vhs/api.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vhs/api/issues"
+  },
+  "homepage": "https://github.com/vhs/api#readme",
+  "dependencies": {
+    "hapi": "^8.8.1",
+    "hapi-redis": "^5.0.0"
+  }
+}

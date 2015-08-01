@@ -1,8 +1,0 @@
-.git
-.carton
-local
-logs
-server.log
-config.yml
-*.swp
-*.swo

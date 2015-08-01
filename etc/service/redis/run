@@ -1,3 +1,0 @@
-#!/bin/bash
-
-chpst -u redis:redis -o 4192 /usr/bin/redis-server /etc/redis/redis.conf

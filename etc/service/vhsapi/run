@@ -1,6 +1,0 @@
-#!/bin/bash
-
-VHSAPI=/opt/vhsapi
-
-cd $VHSAPI
-exec chpst -u api carton exec $VHSAPI/bin/app.pl
