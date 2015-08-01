@@ -21,14 +21,14 @@ adduser --quiet --no-create-home --disabled-password api
 mkdir /etc/service/vhsapi
 cp -R /opt/api/etc/service/vhsapi /etc/service
 
-chown api /opt/api
+chown api /opt/vhsapi
 
-cd /opt/api
+cd /opt/vhsapi
 carton install
 
 # Configure and Run Redis
-cp -R /opt/api/etc/redis/redis.conf /etc/redis/redis.conf
-cp -R /opt/api/etc/service/redis /etc/service
+cp -R /opt/vhsapi/etc/redis/redis.conf /etc/redis/redis.conf
+cp -R /opt/vhsapi/etc/service/redis /etc/service
 
 # Uninstall TMP_PKGS
 # apt-get remove --yes $TMP_PKGS

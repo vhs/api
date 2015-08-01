@@ -4,7 +4,7 @@ FROM phusion/baseimage:0.9.17
 
 CMD ["/sbin/my_init"]
 
-ADD . /opt/api
+ADD . /opt/vhsapi
 
 RUN /opt/api/scripts/docker_install.sh
 
