@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+{{#block "head"}}
 <head>
 <meta http-equiv="Content-type" content="text/html; charset=[% settings.charset %]" />
 <title>VHSAPI</title>
@@ -15,6 +16,7 @@
 <script src="http://api.hackspace.ca/javascripts/jquery.timeago.js" type="text/javascript"></script>
 
 </head>
+{{/block}}
 <body>
   <div class="container">
     <div class="row">
@@ -23,7 +25,8 @@
         <p class="lead">An API about your local hackerspace.</p>
       </div>
     </div>
-    [% content %]
+    {{#block "body"}}
+    {{/block}}
   </div>
   <footer class="footer">
     <div class="container">
