@@ -19,6 +19,8 @@
   "homepage": "https://github.com/vhs/api#readme",
   "dependencies": {
     "async": "^1.4.0",
+    "bunyan": "^1.4.0",
+    "convict": "^1.0.1",
     "handlebars": "^3.0.3",
     "handlebars-layouts": "^3.1.0",
     "hapi": "^8.8.1",

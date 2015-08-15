@@ -1,16 +1,45 @@
 var Path = require('path');
 var fs = require('fs');
 
+var convict = require('convict');
+var bunyan = require('bunyan');
 var Hapi = require('hapi');
 var handlebars = require('handlebars');
 var layouts = require('handlebars-layouts');
 
+var conf = convict({
+    port: {
+        doc: 'Listen Port',
+        format: 'port',
+        default: '8080',
+        env: 'PORT',
+        arg: 'port'
+    },
+    redis_host: {
+        doc: 'Redis Host',
+        format: 'ipaddress',
+        default: '127.0.0.1',
+        env: 'REDIS_HOST',
+        arg: 'redis-host'
+    },
+    redis_port: {
+        doc: 'Redis Port',
+        format: 'port',
+        default: '6379',
+        env: 'REDIS_PORT',
+        arg: 'redis-port'
+    }
+});
+
 var redisOptions = {
-    "host": "192.168.88.44",
-    "opts": {
-        "parser": "javascript"
+    'host': conf.get('redis_host'),
+    'port': conf.get('redis_port'),
+    'opts': {
+        'parser': 'javascript'
     }
 };
+
+var logger = bunyan.createLogger({name: 'api', level: 'info'});
 
 var server = new Hapi.Server({});
  
@@ -22,14 +51,21 @@ server.views({
     path: __dirname + '/views'
 });
 
-server.register({
-  register: require('hapi-redis'),
-  options: redisOptions
-}, function () {
-  console.log("Redis Registered");
-});
+server.register([
+  {
+    register: require('hapi-redis'),
+    options: redisOptions
+  },
+  {
+    register: require('hapi-bunyan'),
+    options: {logger: logger}
+  }],
+  function () {
+    logger.info('Plugins Registered');
+  }
+);
 
-server.connection({ port: 8080 });
+server.connection({ port: conf.get('port') });
 
 require('./src/routes')(server);
 
@@ -45,5 +81,5 @@ server.route({
 });
 
 server.start(function () {
-    console.log('Server running at:', server.info.uri);
+    logger.info('Server running at:', server.info.uri);
 });

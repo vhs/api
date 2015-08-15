@@ -121,7 +121,7 @@ var Datapoint = {
       redis.get(Datapoint._dataKey(space, name), function(err, _value) {
         if (err) return flowCb(err);
         var value = JSON.parse(_value);
-        context.value = value;
+        context.value = value;  
         flowCb();
       });
     });
@@ -202,7 +202,6 @@ var Datapoint = {
     var flow = [];
     var context = {};
     flow.push(function(flowCb) {
-      console.log([space, name, offset, limit, cb]);
       redis.lrange(Datapoint._dataHistoryKey(space, name), offset, offset + limit - 1, function(err, history) {
         if (err) return flowCb(err);
         context.history = history;
@@ -217,8 +216,13 @@ var Datapoint = {
   },
 
   extendDataPoint: function(space, datapoint) {
+    if (datapoint === null) return datapoint;
     datapoint.space = space;
-    datapoint.datetime = new Date(datapoint.last_updated*1000).toISOString();
+    if (datapoint.last_updated === undefined) {
+      datapoint.datatime = undefined;
+    } else {
+      datapoint.datetime = new Date(datapoint.last_updated*1000).toISOString();
+    }
     datapoint.uri = "/s/" + space + "/data/" + datapoint.name;
     return datapoint;
   }
