@@ -1,9 +1,0 @@
-#!/bin/bash
-
-VHSAPI=/home/vhs/src/api
-PERLBIN=/home/vhs/perl5/perlbrew/perls/perl-5.18.0/bin
-
-cd $VHSAPI
-exec 2>&1 \
-  setuidgid vhs \
-    $PERLBIN/carton exec $PERLBIN/perl $VHSAPI/bin/app.pl >> $VHSAPI/server.log 2>&1

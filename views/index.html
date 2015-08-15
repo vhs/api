@@ -1,0 +1,30 @@
+{{#extend "main" }}
+  {{#content "body" mode="append"}}
+  <div class="container">
+  <div class="row">
+    <div class="well">
+      <p class="lead">
+        This project exists to create a simple API that devices at the <a href="http://vancouver.hackspace.ca">Vancouver Hack Space</a> can use to communicate with other systems.
+      </p>
+    </div>
+    <h2>Hackerspace Data</h2>
+    {{#each spaces}}
+    <h3>{{name}}</h3>
+    <table class="table">
+      <tr>
+        <th>Data point</th><th>Value</th><th>Updated</th>
+      </tr>
+      {{#each members}}
+        <tr class="table-striped">
+          <td><a href="{{uri}}">{{name}}</a></td>
+          <td>{{value}}</td>
+          <td><abbr class="timeago" title="{{datetime}}">{{last_update}}</abbr></td>
+        </tr>
+      {{/each}}
+    </table>
+  {{/each}}
+  </div>
+  </div>
+  {{/content}}
+{{/extend}}
+

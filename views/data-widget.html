@@ -1,0 +1,8 @@
+$(function() {
+    $("#{{data.space}}-{{data.name}}").append(
+        '<span class="datavalue">{{data.value}}</span>'
+        + ' <span class="updatetime">last updated: '
+        + '<abbr class="timeago" title="{{data.last_updated}}">'
+        + '{{data.last_updated}}</abbr></span>'
+    ); 
+});
