@@ -1,6 +1,2 @@
-.carton
-local
-logs
-server.log
-config.yml
-*.sw[po]
+npm-debug.log
+node_modules
