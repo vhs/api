@@ -191,6 +191,38 @@ server.route({
   }
 });
 
+// a basic page showing two datapoints in a style designed for isvhsopen.com
+server.route({
+  method: 'GET',
+  path: '/s/{spacename}/data/{dataname1}/{dataname2}/fullpage',
+  handler: function(request, reply) {
+    var redisClient = request.server.plugins['hapi-redis'].client;
+    Datapoint.get(redisClient, request.params.spacename, request.params.dataname1, function(err, data1) {
+      if (err) {
+        request.log.error(err);
+        reply(404);
+      } else {
+        Datapoint.get(redisClient, request.params.spacename, request.params.dataname2, function(err, data2) {
+          if (err) {
+            request.log.error(err);
+            reply(404);
+          } else {
+            var renderContext = {
+              datapoint1: data1,
+              datapoint2: data2,
+              space: {name: "vhs"}
+            };
+            server.render("data-full", renderContext, {}, function(err, rendered) {
+              if (err) return reply(err);
+              reply(rendered);
+            });
+          }
+        });
+      }
+    });
+  }
+});
+
 // a verbose page about the datavalue
 server.route({
   method: 'GET',

@@ -3,7 +3,7 @@ var _ = require('underscore');
 
 var spaceRegex = /[^A-Za-z0-9_\-]*/
 var nameRegex = /[^A-Za-z0-9_\-]*/
-var valueRegex = /[^A-Za-z0-9_\-]*/
+var valueRegex = /[^A-Za-z0-9_\-\.: ]*/
 
 var Datapoint = {
 
@@ -197,7 +197,7 @@ var Datapoint = {
     });
   },
 
-  // get the last 100 data points
+  // get a set of data points, starting at 'offset' and returning 'limit' number of points
   history: function(redis, space, name, offset, limit, cb) {
     var flow = [];
     var context = {};
