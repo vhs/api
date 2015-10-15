@@ -19,14 +19,14 @@ var conf = convict({
         doc: 'Redis Host',
         format: 'ipaddress',
         default: '127.0.0.1',
-        env: 'REDIS_HOST',
+        env: 'REDIS_PORT_6379_TCP_ADDR',
         arg: 'redis-host'
     },
     redis_port: {
         doc: 'Redis Port',
         format: 'port',
         default: '6379',
-        env: 'REDIS_PORT',
+        env: 'REDIS_PORT_6379_TCP_PORT',
         arg: 'redis-port'
     }
 });
@@ -41,8 +41,10 @@ var redisOptions = {
 
 var logger = bunyan.createLogger({name: 'api', level: 'info'});
 
+logger.info('Redis config', redisOptions);
+
 var server = new Hapi.Server({});
- 
+
 handlebars.registerHelper(layouts(handlebars));
 handlebars.registerPartial('main', fs.readFileSync(__dirname + '/views/layouts/main.html', 'utf8'));
 
