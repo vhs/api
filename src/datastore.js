@@ -52,7 +52,7 @@ Datastore.prototype.getSummary = function() {
                     results[0].forEach(function(result){
                         var point = {
                             name: result.name,
-                            value: result.last,
+                            value: result.value,
                             last_updated: result.time
                         };
                         if (last && last.name === result.space) {
