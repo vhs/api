@@ -34,12 +34,19 @@ Datastore.prototype.getSummary = function() {
     return new Promise(
         function(resolve, reject) {
 
-            var query = 'select last(value) from api  WHERE time > now() - 365d group by space, name';
+            var query = 'select value from api group by space, name order by time desc limit 1';
             influx.query(query, function(err, results) {
                 if (err) {
                     return reject(err);
                 }
                 if (results[0]){
+
+                    results[0].sort(function(a,b){
+                        if (a.space == b.space) {
+                            return a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
+                        }
+                        return a.space > b.space ? 1 : -1;
+                    });
                     var last = null;
                     var sorted = [];
                     results[0].forEach(function(result){

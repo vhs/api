@@ -2,7 +2,7 @@
 var Influx = require('influx');
 
 exports.register = function(plugin, options, next) {
-    var defaults, influx;
+    var defaults;
     defaults = {
         host: 'localhost',
         port: 8086,
@@ -13,7 +13,8 @@ exports.register = function(plugin, options, next) {
     };
 
     options = Object.assign(defaults, options);
-    plugin.expose('influx', Influx(options));
+    var influx = Influx(options);
+    plugin.expose('influx', influx);
     plugin.log(['hapi-influx', 'info'], 'InfluxDB connection created');
     return next();
 };

@@ -24,6 +24,6 @@
     "handlebars-layouts": "^3.1.0",
     "hapi": "^8.8.1",
     "hapi-bunyan": "^0.6.0",
-    "influx": "^3.5.0"
+    "influx": "^4.0.0"
   }
 }

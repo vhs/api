@@ -48,14 +48,6 @@ var conf = convict({
     }
 });
 
-var redisOptions = {
-    'host': conf.get('redis_host'),
-    'port': conf.get('redis_port'),
-    'opts': {
-        'parser': 'javascript'
-    }
-};
-
 var influxOptions = {
     // or single-host configuration
     host : conf.get('influx_host'),
@@ -67,8 +59,6 @@ var influxOptions = {
 };
 
 var logger = bunyan.createLogger({name: 'api', level: 'info'});
-
-logger.info('Redis config', redisOptions);
 
 var server = new Hapi.Server({});
 
