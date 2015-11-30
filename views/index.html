@@ -16,9 +16,9 @@
       </tr>
       {{#each members}}
         <tr class="table-striped">
-          <td><a href="{{uri}}">{{name}}</a></td>
+          <td><a href="/s/{{../name}}/data/{{name}}">{{name}}</a></td>
           <td>{{value}}</td>
-          <td><abbr class="timeago" title="{{datetime}}">{{last_update}}</abbr></td>
+          <td><abbr class="timeago" title="{{last_updated}}">{{last_updated}}</abbr></td>
         </tr>
       {{/each}}
     </table>

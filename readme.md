@@ -7,24 +7,22 @@ Time series data something something.
 
 Build with a standard `docker build .`
 
-To run successfully in Docker you need to provide the REDIS_HOST env
+To run successfully in Docker you need to provide the INFLUX_* env
 
-`docker run -d -e REDIS_PORT_6379_TCP_ADDR=<hostip> <image-id>`
+`docker run -d -e INFLUX_HOST=<hostip> <image-id>`
 
 # Config options
 
 All configs can be ENV or arg
-- port/PORT: default 8080
-- redis-host/REDIS_PORT_6379_TCP_ADDR: default 127.0.0.1
-- redis-port/REDIS_PORT_6379_TCP_PORT: default 6379
+
+- influx-host/INFLUX_HOST: default localhost
+- influx-port/INFLUX_PORT: default 8086
+- influx-user/INFLUX_USER
+- influx-pw/INFLUX_PASSWORD
+- influx-db/INFLUX_DB: default api
 
 # Dev Setup
 
 Standard Node.JS project:
 1. npm install
 2. node ./index.js
-
-
-# Docker
-
-Can be run with `--link <redis-servce>:redis`

@@ -23,7 +23,7 @@
     "handlebars": "^3.0.3",
     "handlebars-layouts": "^3.1.0",
     "hapi": "^8.8.1",
-    "hapi-redis": "^5.0.0",
-    "underscore": "^1.8.3"
+    "hapi-bunyan": "^0.6.0",
+    "influx": "^3.5.0"
   }
 }

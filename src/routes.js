@@ -1,8 +1,5 @@
-var async = require('async');
-
-var Datapoint = require('./datapoint');
-var Spaces = require('./spaces');
-
+'use strict';
+var Datastore = require('./datastore');
 
 var routes = function(server) {
 
@@ -10,39 +7,20 @@ server.route({
     method: 'GET',
     path: '/',
     handler: function (request, reply) {
-      var redisClient = request.server.plugins['hapi-redis'].client;
-      var context = {};
-      var flow = [];
-
-      flow.push(function(flowCb) {
-        Spaces.all(redisClient, function(err, spaces) {
-          if (err) return flowCb(err);
-          context.spaces = spaces;
-          flowCb();
-        });
-      });
-
-      flow.push(function(flowCb) {
-        async.each(
-          context.spaces,
-          function(item, eachCb) {
-            Datapoint.all(redisClient, item.name, function(err, members) {
-              if (err) return eachCb(err);
-              item.members = members;
-              eachCb();
-            })
-          },
-          flowCb
-        );
-      });
-
-      async.series(flow, function(err) {
-        if (err) return reply(err);
-        server.render("index", context, {}, function(err, rendered) {
-          if (err) return reply(err);
-          reply(rendered);
-        });  
-      });
+      var influx = request.server.plugins['influx'].influx;
+      new Datastore(influx).getSummary()
+          .then(function(summary){
+            var context = {
+              spaces: summary
+            };
+            server.render("index", context, {}, function(err, rendered) {
+              if (err) return reply(err);
+              reply(rendered);
+            });
+          })
+          .catch(function(err){
+            reply(err);
+          })
     }
 });
 
@@ -51,23 +29,28 @@ server.route({
   method: 'GET',
   path: '/s/{spacename}/data/history/{dataname}.json',
   handler: function(request, reply) {
-    var redisClient = request.server.plugins['hapi-redis'].client;
     var limit = 100;
     var offset = 0;
 
-    Datapoint.history(redisClient, request.params.spacename, request.params.dataname, offset, limit, function(err, datapoints) {
-      if (err) {
-        request.log.error(err);
-        reply(404);
-      } else {
-        reply({
-          "offset": offset,
-          "limit": limit,
-          "count": datapoints.length,
-          "data": datapoints
+    var influx = request.server.plugins['influx'].influx;
+    new Datastore(influx).getHistory(request.params.spacename, request.params.dataname, offset, limit)
+        .then(function(data){
+          if (data) {
+            data.forEach(function(i){
+              i.last_updated = Math.round(Date.parse(i.last_updated)/1000);
+            });
+          }
+          reply({
+            "offset": offset,
+            "limit": limit,
+            "count": data.length,
+            "data": data
+          });
+        })
+        .catch(function(err){
+          request.log.error(err);
+          reply(404);
         });
-      }
-    });
   }
 });
 
@@ -76,15 +59,16 @@ server.route({
   method: 'GET',
   path: '/s/{spacename}/data/{dataname}.json',
   handler: function(request, reply) {
-    var redisClient = request.server.plugins['hapi-redis'].client;
-    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
-      if (err) {
-        request.log.error(err);
-        reply(404);
-      } else {
-        reply(data);  
-      }
-    });
+    var influx = request.server.plugins['influx'].influx;
+    new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
+        .then(function(result){
+          result.last_updated = Math.round(Date.parse(result.last_updated)/1000);
+          reply(result);
+        })
+        .catch(function(err){
+          request.log.error(err);
+          reply(404);
+        });
   }
 });
 
@@ -93,15 +77,15 @@ server.route({
   method: 'GET',
   path: '/s/{spacename}/data/{dataname}.txt',
   handler: function(request, reply) {
-    var redisClient = request.server.plugins['hapi-redis'].client;
-    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
-      if (err) {
-        request.log.error(err);
-        reply(404);
-      } else {
-        reply(data.value);
-      }
-    });
+    var influx = request.server.plugins['influx'].influx;
+    new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
+        .then(function(result){
+          reply(result.value).header('Content-Type', "text/plain");;
+        })
+        .catch(function(err){
+          request.log.error(err);
+          reply(404);
+        });
   }
 });
 
@@ -110,15 +94,7 @@ server.route({
   method: 'GET',
   path: '/s/{spacename}/data/{dataname}/feed',
   handler: function(request, reply) {
-    var redisClient = request.server.plugins['hapi-redis'].client;
-    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
-      if (err) {
-        request.log.error(err);
-        reply(404);
-      } else {
-        reply("RSS FEED PEW PEW PEW");
-      }
-    });
+    reply("RSS FEED PEW PEW PEW");
   }
 });
 
@@ -128,19 +104,21 @@ server.route({
   method: 'GET',
   path: '/s/{spacename}/data/{dataname}/update',
   handler: function(request, reply) {
-    var redisClient = request.server.plugins['hapi-redis'].client;
+    var influx = request.server.plugins['influx'].influx;
     if (request.url.query.value === undefined) {
       request.log.error(err);
       return reply(403);
     }
-    Datapoint.set(redisClient, request.params.spacename, request.params.dataname, request.url.query.value, function(err, data) {
-      if (err) {
-        request.log.error(err);
-        reply(500);
-      } else {
-        reply({"status":"OK","result":data})
-      }
-    });
+    var ds = new Datastore(influx);
+    ds.setIfChanged(request.params.spacename, request.params.dataname, request.url.query.value)
+        .then(function(result){
+          result.last_updated = Math.round(Date.parse(result.last_updated)/1000);
+          reply({"result":result, "status":"OK"});
+        })
+        .catch(function(err){
+          request.log.error(err);
+          reply(500);
+        });
   }
 });
 
@@ -149,21 +127,23 @@ server.route({
   method: 'GET',
   path: '/s/{spacename}/data/{dataname}.js',
   handler: function(request, reply) {
-    var redisClient = request.server.plugins['hapi-redis'].client;
-    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
-      if (err) {
-        request.log.error(err);
-        reply(500);
-      } else if (data === null) {
-        request.log.error(err);
-        reply(404);
-      } else {
-         server.render("data-widget", {data: data}, {}, function(err, rendered) {
-          if (err) return reply(err);
-          reply(rendered);
+    var influx = request.server.plugins['influx'].influx;
+    new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
+        .then(function(result){
+          if (result === null) {
+            request.log.error(err);
+            return reply(404);
+          }
+          result.space = request.params.spacename;
+          server.render("data-widget", {data: result}, {}, function(err, rendered) {
+            if (err) return reply(err);
+            reply(rendered).header('Content-Type', "application/javascript");
+          });
+        })
+        .catch(function(err){
+          request.log.error(err);
+          reply(500);
         });
-      }
-    });
   }
 });
 
@@ -172,22 +152,22 @@ server.route({
   method: 'GET',
   path: '/s/{spacename}/data/{dataname}/fullpage',
   handler: function(request, reply) {
-    var redisClient = request.server.plugins['hapi-redis'].client;
-    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
-      if (err) {
-        request.log.error(err);
-        reply(404);
-      } else {
-        var renderContext = {
-          data: data,
-          space: {name: "vhs"}
-        };
-        server.render("data-full", renderContext, {}, function(err, rendered) {
-          if (err) return reply(err);
-          reply(rendered);
+    var influx = request.server.plugins['influx'].influx;
+    new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
+        .then(function(result){
+          var renderContext = {
+            data: result,
+            space: {name: request.params.spacename}
+          };
+          server.render("data-full", renderContext, {}, function(err, rendered) {
+            if (err) return reply(err);
+            reply(rendered);
+          });
+        })
+        .catch(function(err){
+          request.log.error(err);
+          reply(404);
         });
-      }
-    });
   }
 });
 
@@ -196,30 +176,30 @@ server.route({
   method: 'GET',
   path: '/s/{spacename}/data/{dataname1}/{dataname2}/fullpage',
   handler: function(request, reply) {
-    var redisClient = request.server.plugins['hapi-redis'].client;
-    Datapoint.get(redisClient, request.params.spacename, request.params.dataname1, function(err, data1) {
-      if (err) {
-        request.log.error(err);
-        reply(404);
-      } else {
-        Datapoint.get(redisClient, request.params.spacename, request.params.dataname2, function(err, data2) {
-          if (err) {
-            request.log.error(err);
-            reply(404);
-          } else {
-            var renderContext = {
-              datapoint1: data1,
-              datapoint2: data2,
-              space: {name: "vhs"}
-            };
-            server.render("data-full", renderContext, {}, function(err, rendered) {
-              if (err) return reply(err);
-              reply(rendered);
-            });
-          }
+    var influx = request.server.plugins['influx'].influx;
+    var first, second;
+    var ds = new Datastore(influx);
+    ds.getLatest(request.params.spacename, request.params.dataname1)
+        .then(function(data){
+          first = data;
+          return ds.getLatest(request.params.spacename, request.params.dataname2)
+        })
+        .then(function(data){
+          second = data;
+          var renderContext = {
+            datapoint1: first,
+            datapoint2: second,
+            space: {name: request.params.spacename }
+          };
+          server.render("data-dual-full", renderContext, {}, function(err, rendered) {
+            if (err) return reply(err);
+            reply(rendered);
+          });
+        })
+        .catch(function(err){
+          request.log.error(err);
+          reply(404);
         });
-      }
-    });
   }
 });
 
@@ -228,20 +208,25 @@ server.route({
   method: 'GET',
   path: '/s/{spacename}/data/{dataname}',
   handler: function(request, reply) {
-     var redisClient = request.server.plugins['hapi-redis'].client;
-    Datapoint.get(redisClient, request.params.spacename, request.params.dataname, function(err, data) {
-      if (err) {
-        request.log.error(err);
-        reply(404);
-      } else {
-        server.render("data", {data: data}, {}, function(err, rendered) {
-          if (err) return reply(err);
-          reply(rendered);
+    var influx = request.server.plugins['influx'].influx;
+    new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
+        .then(function (result) {
+          if (!result) {
+            request.log.error(err);
+            return reply(404);
+          }
+
+          server.render("data", {space: request.params.spacename, data: result}, {}, function (err, rendered) {
+            if (err) return reply(err);
+            reply(rendered);
+          });
+        })
+        .catch(function (err) {
+          request.log.error(err);
+          reply(404);
         });
-      }
-    });
   }
 });
-}
+};
 
 module.exports = routes;
