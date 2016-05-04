@@ -34,7 +34,7 @@ Datastore.prototype.getSummary = function() {
     return new Promise(
         function(resolve, reject) {
 
-            var query = 'select value from api group by space, name order by time desc limit 1';
+            var query = 'select value from api group by space, "name" order by time desc limit 1';
             influx.query(query, function(err, results) {
                 if (err) {
                     return reject(err);
@@ -113,7 +113,7 @@ Datastore.prototype.getLatest = function(space, name) {
     return new Promise(
         function(resolve, reject) {
 
-            var query = "SELECT time, value from api where name='" +
+            var query = "SELECT time, value from api where \"name\"='" +
                     Datastore._escapeValue(name) + "' and space='" +
                     Datastore._escapeValue(space) + "' order by time desc limit 1;";
             influx.query(query, function(err, results) {
@@ -146,7 +146,7 @@ Datastore.prototype.getHistory = function(space, name, offset, limit) {
 
     return new Promise(
         function(resolve, reject) {
-            var query = "SELECT time, value from api where name='" +
+            var query = "SELECT time, value from api where \"name\"='" +
                 Datastore._escapeValue(name) + "' and space='" +
                 Datastore._escapeValue(space) + "' order by time desc limit " +
                 parseInt(limit) + " offset " + parseInt(offset) + ";";
