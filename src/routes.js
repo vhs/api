@@ -62,8 +62,10 @@ server.route({
     var influx = request.server.plugins['influx'].influx;
     new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
         .then(function(result){
-          result.last_updated = Math.round(Date.parse(result.last_updated)/1000);
-          reply(result);
+          if( result !== undefined ) {
+        	  result.last_updated = Math.round(Date.parse(result.last_updated)/1000);
+        	  reply(result);
+          }
         })
         .catch(function(err){
           request.log.error(err);
