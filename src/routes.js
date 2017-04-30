@@ -31,6 +31,14 @@ server.route({
   handler: function(request, reply) {
     var limit = 100;
     var offset = 0;
+    
+    if( request.query.offset !== undefined && typeof parseInt( request.query.offset ) == 'number' ) {
+    	offset = parseInt( request.query.offset );
+    }
+    
+    if( request.query.limit !== undefined && typeof parseInt( request.query.limit ) == 'number' ) {
+    	limit = parseInt( request.query.limit );
+    }
 
     var influx = request.server.plugins['influx'].influx;
     new Datastore(influx).getHistory(request.params.spacename, request.params.dataname, offset, limit)

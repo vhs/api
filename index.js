@@ -70,7 +70,7 @@ server.views({
     path: __dirname + '/views'
 });
 
-server.connection({ port: conf.get('port') });
+server.connection({ port: conf.get('port'), routes: { cors: true } });
 
 server.register([
   {
