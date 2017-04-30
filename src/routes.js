@@ -49,7 +49,7 @@ server.route({
         })
         .catch(function(err){
           request.log.error(err);
-          reply(404);
+          reply("error").code(404);
         });
   }
 });
@@ -65,11 +65,14 @@ server.route({
           if( result !== undefined ) {
         	  result.last_updated = Math.round(Date.parse(result.last_updated)/1000);
         	  reply(result);
+          } else {
+        	  request.log.error("No results");
+        	  reply("error").code(404);
           }
         })
         .catch(function(err){
           request.log.error(err);
-          reply(404);
+          reply("error").code(404);
         });
   }
 });
@@ -86,7 +89,7 @@ server.route({
         })
         .catch(function(err){
           request.log.error(err);
-          reply(404);
+          reply("error").code(404);
         });
   }
 });
@@ -109,7 +112,7 @@ server.route({
     var influx = request.server.plugins['influx'].influx;
     if (request.url.query.value === undefined) {
       request.log.error(err);
-      return reply(403);
+      return reply('forbidden').code(403);
     }
     var ds = new Datastore(influx);
     ds.setIfChanged(request.params.spacename, request.params.dataname, request.url.query.value)
@@ -119,7 +122,7 @@ server.route({
         })
         .catch(function(err){
           request.log.error(err);
-          reply(500);
+          reply('error').code(500);
         });
   }
 });
@@ -133,8 +136,8 @@ server.route({
     new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
         .then(function(result){
           if (result === null) {
-            request.log.error(err);
-            return reply(404);
+            request.log.error("No results");
+            return reply('error').code(404);
           }
           result.space = request.params.spacename;
           server.render("data-widget", {data: result}, {}, function(err, rendered) {
@@ -144,7 +147,7 @@ server.route({
         })
         .catch(function(err){
           request.log.error(err);
-          reply(500);
+          reply('error').code(500);
         });
   }
 });
@@ -168,7 +171,7 @@ server.route({
         })
         .catch(function(err){
           request.log.error(err);
-          reply(404);
+          reply('error').code(404);
         });
   }
 });
@@ -200,7 +203,7 @@ server.route({
         })
         .catch(function(err){
           request.log.error(err);
-          reply(404);
+          reply('error').code(404);
         });
   }
 });
@@ -214,8 +217,8 @@ server.route({
     new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
         .then(function (result) {
           if (!result) {
-            request.log.error(err);
-            return reply(404);
+        	request.log.error("No results");
+            return reply('error').code(404);
           }
 
           server.render("data", {space: request.params.spacename, data: result}, {}, function (err, rendered) {
@@ -225,7 +228,7 @@ server.route({
         })
         .catch(function (err) {
           request.log.error(err);
-          reply(404);
+          reply('error').code(404);
         });
   }
 });
