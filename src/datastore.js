@@ -56,7 +56,7 @@ Datastore.prototype.getSummary = function() {
                             last_updated: result.time
                         };
                         if (last && last.name === result.space) {
-                            last.members.push(point)
+                            last.members.push(point);
                         } else {
                             last = {
                                 name: result.space,
@@ -70,7 +70,7 @@ Datastore.prototype.getSummary = function() {
                 return resolve();
             });
         }
-    )
+    );
 };
 
 Datastore.prototype.setValue = function(space, name, value) {
@@ -101,7 +101,7 @@ Datastore.prototype.setIfChanged = function(space, name, value) {
         .then(function(latest){
             if (latest && latest.value === value) {
                 latest.unchanged = true;
-                return latest
+                return latest;
             } else {
                 return self.setValue(space, name, value);
             }
@@ -131,7 +131,7 @@ Datastore.prototype.getLatest = function(space, name) {
                 return resolve();
             });
         }
-    )
+    );
 };
 
 Datastore.prototype.getHistory = function(space, name, offset, limit) {
@@ -160,13 +160,13 @@ Datastore.prototype.getHistory = function(space, name, offset, limit) {
                             name: name,
                             value: result.value,
                             last_updated: result.time
-                        }
+                        };
                     }));
                 }
                 return resolve();
             });
         }
-    )
+    );
 };
 
 module.exports = Datastore;

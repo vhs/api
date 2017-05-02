@@ -20,10 +20,24 @@
     "async": "^1.4.0",
     "bunyan": "^1.4.0",
     "convict": "^1.0.1",
+    "crypto-js": "^3.1.9-1",
+    "debug": "^2.6.6",
     "handlebars": "^3.0.3",
     "handlebars-layouts": "^3.1.0",
     "hapi": "^8.8.1",
     "hapi-bunyan": "^0.6.0",
-    "influx": "^4.0.0"
+    "influx": "^4.0.0",
+    "path-to-regexp": "^1.7.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-istanbul": "^1.1.1",
+    "gulp-jshint": "^2.0.4",
+    "gulp-mocha": "^4.3.1",
+    "jshint": "^2.9.4",
+    "jshint-stylish": "^2.2.1",
+    "mocha": "^3.3.0",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.0"
   }
 }
