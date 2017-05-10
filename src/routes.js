@@ -139,8 +139,7 @@ server.route({
 			var verified = auth.verifyRequest( JSON.stringify( request.payload ), request.url.pathname, request.payload.client, request.payload.ts, request.url.query.hash );
 			
 			if( ! verified ) {
-				request.log.error( "failed HMAC for:" );
-				request.log.error( request.url );
+				request.log.error( "failed HMAC for: [" + request.url.pathname + "]" );
 				return reply('Not Authorized - Failed Authentication').code(403);
 			}
 		}
