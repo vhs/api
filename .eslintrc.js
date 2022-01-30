@@ -3,6 +3,7 @@ module.exports = {
     commonjs: true,
     es2021: true,
     node: true,
+    mocha: true,
   },
   extends: [
     'xo',
@@ -18,5 +19,6 @@ module.exports = {
     radix: ['error', 'as-needed'],
     'no-multiple-empty-lines': 'error',
     'max-params': ['error', { max: 5 }],
+    'new-cap': ['warn', { properties: false }],
   },
 };
