@@ -36,12 +36,27 @@ const conf = convict({
     default: '',
     env: 'INFLUX_PASSWORD',
     arg: 'influx-pw',
+    sensitive: true,
   },
   influx_db: {
     doc: 'Influx DB',
     default: 'api',
     env: 'INFLUX_DB',
     arg: 'influx-db',
+  },
+  acls: {
+    doc: 'ACLs',
+    format: Object,
+    env: 'ACLS',
+    arg: 'acls',
+    default: {},
+  },
+  clients: {
+    doc: 'Clients',
+    format: Object,
+    env: 'CLIENTS',
+    arg: 'clients',
+    default: {},
   },
 });
 
