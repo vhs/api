@@ -21,6 +21,7 @@ describe('Do the tests', () => {
       if (err) {
         debug(getLine(), err);
         console.log(typeof err);
+
         done(new Error(err));
       } else {
         if (typeof body !== 'object') {
@@ -44,6 +45,7 @@ describe('Do the tests', () => {
 
   it('test update with GET', done => {
     const ts = Math.floor(Date.now() / 1000);
+
     const requestURI = '/s/test/data/test/update?value=update-' + ts;
 
     const key = ts + requestURI + clientSecret;
@@ -58,6 +60,7 @@ describe('Do the tests', () => {
       if (err) {
         debug(getLine(), err);
         console.log(typeof err);
+
         done(new Error(err));
       } else {
         if (typeof body !== 'object') {
@@ -67,6 +70,7 @@ describe('Do the tests', () => {
         debug(getLine(), 'Response code: ' + httpResponse.statusCode);
         debug(getLine(), '------------------------------------------');
         debug(getLine(), body.status);
+
         if (httpResponse.statusCode === 200 && body.status === 'OK') {
           done();
         } else {
@@ -78,9 +82,11 @@ describe('Do the tests', () => {
 
   it('test update with PUT', done => {
     const ts = Math.floor(Date.now() / 1000);
+
     const requestURI = '/s/test/data/test/update';
 
     const formdata = {};
+
     formdata.value = 'update-' + ts;
     formdata.ts = String(ts);
     formdata.client = clientName;
@@ -99,11 +105,13 @@ describe('Do the tests', () => {
       if (err) {
         debug(getLine(), err);
         debug(typeof err);
+
         done(new Error(err));
       } else {
         debug(getLine(), 'Response code: ' + httpResponse.statusCode);
         debug(getLine(), '------------------------------------------');
         debug(getLine(), body.status);
+
         if (httpResponse.statusCode === 200 && body.status === 'OK') {
           done();
         } else {

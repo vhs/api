@@ -14,11 +14,13 @@ const routes = function (server) {
     path: '/',
     handler(request, reply) {
       const { influx } = request.server.plugins.influx;
+
       new Datastore(influx).getSummary()
         .then(summary => {
           const context = {
             spaces: summary,
           };
+
           server.render('index', context, {}, (err, rendered) => {
             if (err) {
               return reply(err);
@@ -49,6 +51,7 @@ const routes = function (server) {
       }
 
       const { influx } = request.server.plugins.influx;
+
       new Datastore(influx).getHistory(request.params.spacename, request.params.dataname, offset, limit)
         .then(data => {
           if (data) {
@@ -66,6 +69,7 @@ const routes = function (server) {
         })
         .catch(err => {
           request.log.error(err);
+
           reply('error').code(404);
         });
     },
@@ -77,18 +81,22 @@ const routes = function (server) {
     path: '/s/{spacename}/data/{dataname}.json',
     handler(request, reply) {
       const { influx } = request.server.plugins.influx;
+
       new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
         .then(result => {
           if (result === undefined) {
             request.log.error('No results');
+
             reply('error').code(404);
           } else {
             result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
+
             reply(result);
           }
         })
         .catch(err => {
           request.log.error(err);
+
           reply('error').code(404);
         });
     },
@@ -100,12 +108,14 @@ const routes = function (server) {
     path: '/s/{spacename}/data/{dataname}.txt',
     handler(request, reply) {
       const { influx } = request.server.plugins.influx;
+
       new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
         .then(result => {
           reply(result.value).header('Content-Type', 'text/plain');
         })
         .catch(err => {
           request.log.error(err);
+
           reply('error').code(404);
         });
     },
@@ -129,6 +139,7 @@ const routes = function (server) {
       // Check input
       if (request.payload.value === undefined) {
         request.log.error('Missing value argument');
+
         return reply('Forbidden - Missing value argument').code(400);
       }
 
@@ -136,6 +147,7 @@ const routes = function (server) {
       if (auth.matchACL(request.url.pathname)) {
         if ((request.payload.client === undefined) || (request.payload.ts === undefined) || (request.url.query.hash === undefined)) {
           request.log.error('Missing authorization fields');
+
           return reply('Not Authorized - Missing authorization fields').code(401);
         }
 
@@ -143,6 +155,7 @@ const routes = function (server) {
 
         if (!verified) {
           request.log.error('failed HMAC for: [' + request.url.pathname + ']');
+
           return reply('Not Authorized - Failed Authentication').code(403);
         }
       }
@@ -154,10 +167,12 @@ const routes = function (server) {
       ds.setIfChanged(request.params.spacename, request.params.dataname, request.payload.value)
         .then(result => {
           result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
+
           reply({ result, status: 'OK' });
         })
         .catch(err => {
           request.log.error(err);
+
           reply('error').code(500);
         });
     },
@@ -172,6 +187,7 @@ const routes = function (server) {
       // Check for valid input
       if (request.url.query.value === undefined) {
         request.log.error('Missing value argument');
+
         return reply('Forbidden - Missing value argument').code(400);
       }
 
@@ -179,6 +195,7 @@ const routes = function (server) {
       if (auth.matchACL(request.url.pathname)) {
         if ((request.url.query.client === undefined) || (request.url.query.ts === undefined) || (request.url.query.hash === undefined)) {
           request.log.error('Missing authorization fields');
+
           return reply('Not Authorized - Missing authorization fields').code(401);
         }
 
@@ -188,20 +205,26 @@ const routes = function (server) {
 
         if (!verified) {
           request.log.error('failed HMAC for:');
+
           request.log.error(request.url);
+
           return reply('Not Authorized - Failed Authentication').code(403);
         }
       }
 
       const { influx } = request.server.plugins.influx;
+
       const ds = new Datastore(influx);
+
       ds.setIfChanged(request.params.spacename, request.params.dataname, request.url.query.value)
         .then(result => {
           result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
+
           reply({ result, status: 'OK' });
         })
         .catch(err => {
           request.log.error(err);
+
           reply('Error in query').code(500);
         });
     },
@@ -219,10 +242,12 @@ const routes = function (server) {
         .then(result => {
           if (result === null) {
             request.log.error('No results');
+
             return reply('error').code(404);
           }
 
           result.space = request.params.spacename;
+
           server.render('data-widget', { data: result }, {}, (err, rendered) => {
             if (err) {
               return reply(err);
@@ -233,6 +258,7 @@ const routes = function (server) {
         })
         .catch(err => {
           request.log.error(err);
+
           reply('error').code(500);
         });
     },
@@ -244,12 +270,14 @@ const routes = function (server) {
     path: '/s/{spacename}/data/{dataname}/fullpage',
     handler(request, reply) {
       const { influx } = request.server.plugins.influx;
+
       new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
         .then(result => {
           const renderContext = {
             data: result,
             space: { name: request.params.spacename },
           };
+
           server.render('data-full', renderContext, {}, (err, rendered) => {
             if (err) {
               return reply(err);
@@ -260,6 +288,7 @@ const routes = function (server) {
         })
         .catch(err => {
           request.log.error(err);
+
           reply('error').code(404);
         });
     },
@@ -271,6 +300,7 @@ const routes = function (server) {
     path: '/s/{spacename}/data/{dataname1}/{dataname2}/fullpage',
     handler(request, reply) {
       const { influx } = request.server.plugins.influx;
+
       const ds = new Datastore(influx);
 
       let first;
@@ -279,15 +309,18 @@ const routes = function (server) {
       ds.getLatest(request.params.spacename, request.params.dataname1)
         .then(data => {
           first = data;
+
           return ds.getLatest(request.params.spacename, request.params.dataname2);
         })
         .then(data => {
           second = data;
+
           const renderContext = {
             datapoint1: first,
             datapoint2: second,
             space: { name: request.params.spacename },
           };
+
           server.render('data-dual-full', renderContext, {}, (err, rendered) => {
             if (err) {
               return reply(err);
@@ -298,6 +331,7 @@ const routes = function (server) {
         })
         .catch(err => {
           request.log.error(err);
+
           reply('error').code(404);
         });
     },
@@ -309,10 +343,12 @@ const routes = function (server) {
     path: '/s/{spacename}/data/{dataname}',
     handler(request, reply) {
       const { influx } = request.server.plugins.influx;
+
       new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
         .then(result => {
           if (!result) {
             request.log.error('No results');
+
             return reply('error').code(404);
           }
 
@@ -326,6 +362,7 @@ const routes = function (server) {
         })
         .catch(err => {
           request.log.error(err);
+
           reply('error').code(404);
         });
     },

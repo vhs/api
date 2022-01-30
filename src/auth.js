@@ -26,18 +26,21 @@ const verifyRequest = function (requestUrl, requestPath, clientName, timeStamp, 
   if ((parseInt(timeStamp) > (Math.floor(Date.now() / 1000) + 30)) || (parseInt(timeStamp) < (Math.floor(Date.now() / 1000) - 30))) {
     debug('timestamp out of window');
     logger.debug('timestamp out of window');
+
     return false;
   }
 
   if (clients[clientName] === undefined) {
     debug('invalid client: ' + clientName);
     logger.debug('invalid client: ' + clientName);
+
     return false;
   }
 
   if (acls[requestPath].indexOf(clientName) < 0) {
     debug('client not permitted: ' + clientName);
     logger.debug('client not permitted: ' + clientName);
+
     return false;
   }
 
@@ -49,6 +52,7 @@ const verifyRequest = function (requestUrl, requestPath, clientName, timeStamp, 
     debug('invalid HMAC: ' + request_hash);
     debug('invalid HMAC: ' + checked_hash);
     logger.debug('invalid HMAC: ' + request_hash + ' / ' + checked_hash);
+
     return false;
   }
 

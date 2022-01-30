@@ -1,5 +1,7 @@
 'use strict';
+
 const debug = require('debug')('vhs-api:config');
+
 const convict = require('convict');
 
 const conf = convict({

@@ -22,6 +22,7 @@ const logger = bunyan.createLogger({ name: 'api', level: 'info' });
 const server = new Hapi.Server({});
 
 handlebars.registerHelper(layouts(handlebars));
+
 handlebars.registerPartial('main', fs.readFileSync(__dirname + '/views/layouts/main.html', 'utf8'));
 
 server.views({

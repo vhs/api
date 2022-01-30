@@ -31,8 +31,8 @@ Datastore._escapeValue = function (str) {
 };
 
 Datastore.prototype.getSummary = function () {
-//
   const { influx } = this;
+
   return new Promise(
     ((resolve, reject) => {
       const query = 'select value from api group by space, "name" order by time desc limit 1';
@@ -69,6 +69,7 @@ Datastore.prototype.getSummary = function () {
                 name: result.space,
                 members: [point],
               };
+
               sorted.push(last);
             }
           });
@@ -113,6 +114,7 @@ Datastore.prototype.setIfChanged = function (space, name, value) {
     .then(latest => {
       if (latest && latest.value === value) {
         latest.unchanged = true;
+
         return latest;
       }
 
@@ -128,6 +130,7 @@ Datastore.prototype.getLatest = function (space, name) {
       const query = 'SELECT time, value from api where "name"=\''
                     + Datastore._escapeValue(name) + '\' and space=\''
                     + Datastore._escapeValue(space) + '\' order by time desc limit 1;';
+
       influx.query(query, (err, results) => {
         if (err) {
           return reject(err);
@@ -135,6 +138,7 @@ Datastore.prototype.getLatest = function (space, name) {
 
         if (results[0] && results[0][0]) {
           const result = results[0][0];
+
           return resolve({
             name,
             value: result.value,
@@ -150,6 +154,7 @@ Datastore.prototype.getLatest = function (space, name) {
 
 Datastore.prototype.getHistory = function (space, name, offset, limit) {
   const { influx } = this;
+
   if (!limit) {
     limit = 100;
   }
