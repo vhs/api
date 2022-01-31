@@ -1,36 +1,38 @@
 'use strict';
+const Boom = require('@hapi/boom');
 
 const Datastore = require('./datastore');
 
-// Const debug = require('debug')('vhs-api:routes');
+const throwError = function (err, statusCode) {
+  statusCode = statusCode || 500;
 
-// const conf = require('./config.js');
+  const errInst = Boom.badRequest(err);
+
+  errInst.output.statusCode = statusCode;
+
+  return errInst;
+};
 
 const auth = require('./auth');
 
-const routes = function (server) {
+module.exports = function (server) {
   server.route({
     method: 'GET',
     path: '/',
-    handler(request, reply) {
+    handler: async (request, h) => {
       const { influx } = request.server.plugins.influx;
 
-      new Datastore(influx).getSummary()
-        .then(summary => {
-          const context = {
-            spaces: summary,
-          };
+      try {
+        const datastore = new Datastore(influx);
 
-          server.render('index', context, {}, (err, rendered) => {
-            if (err) {
-              return reply(err);
-            }
+        const summary = await datastore.getSummary();
 
-            reply(rendered);
-          });
-        }).catch(err => {
-          reply(err);
+        return h.view('index', {
+          spaces: summary,
         });
+      } catch (err) {
+        throw throwError(err);
+      }
     },
   });
 
@@ -38,7 +40,7 @@ const routes = function (server) {
   server.route({
     method: 'GET',
     path: '/s/{spacename}/data/history/{dataname}.json',
-    handler(request, reply) {
+    handler: async (request, h) => {
       let limit = 100;
       let offset = 0;
 
@@ -52,26 +54,32 @@ const routes = function (server) {
 
       const { influx } = request.server.plugins.influx;
 
-      new Datastore(influx).getHistory(request.params.spacename, request.params.dataname, offset, limit)
-        .then(data => {
-          if (data) {
-            data.forEach(i => {
-              i.last_updated = Math.round(Date.parse(i.last_updated) / 1000);
-            });
-          }
+      try {
+        const datastore = new Datastore(influx);
 
-          reply({
-            offset,
-            limit,
-            count: data.length,
-            data,
-          }).header('Content-Type', 'application/json');
-        })
-        .catch(err => {
-          request.log.error(err);
+        const data = await datastore.getHistory(request.params.spacename, request.params.dataname, offset, limit);
 
-          reply('error').code(404);
+        if (data) {
+          data.forEach(i => {
+            i.last_updated = Math.round(Date.parse(i.last_updated) / 1000);
+          });
+        }
+
+        const response = h.response({
+          offset,
+          limit,
+          count: data.length,
+          data,
         });
+
+        response.type('application/json');
+
+        return response;
+      } catch (err) {
+        request.logger.error(err);
+
+        throw throwError('error', 404);
+      }
     },
   });
 
@@ -79,26 +87,29 @@ const routes = function (server) {
   server.route({
     method: 'GET',
     path: '/s/{spacename}/data/{dataname}.json',
-    handler(request, reply) {
+    handler: async (request, h) => {
       const { influx } = request.server.plugins.influx;
 
-      new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
-        .then(result => {
-          if (result === undefined) {
-            request.log.error('No results');
+      try {
+        const datastore = new Datastore(influx);
+        const result = await datastore.getLatest(request.params.spacename, request.params.dataname);
 
-            reply('error').code(404);
-          } else {
-            result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
+        if (result === undefined) {
+          request.logger.error('No results');
 
-            reply(result);
-          }
-        })
-        .catch(err => {
-          request.log.error(err);
+          throwError('error', 404);
+        } else {
+          result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
 
-          reply('error').code(404);
-        });
+          const response = h.response(result);
+
+          response.type('application/json');
+
+          return response;
+        }
+      } catch (err) {
+        throw throwError(err, 500);
+      }
     },
   });
 
@@ -106,18 +117,23 @@ const routes = function (server) {
   server.route({
     method: 'GET',
     path: '/s/{spacename}/data/{dataname}.txt',
-    handler(request, reply) {
+    handler: async (request, h) => {
       const { influx } = request.server.plugins.influx;
 
-      new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
-        .then(result => {
-          reply(result.value).header('Content-Type', 'text/plain');
-        })
-        .catch(err => {
-          request.log.error(err);
+      try {
+        const datastore = new Datastore(influx);
+        const result = await datastore.getLatest(request.params.spacename, request.params.dataname);
 
-          reply('error').code(404);
-        });
+        if (result) {
+          const response = h.response(result.value);
+
+          response.header('Content-Type', 'text/plain');
+
+          return response;
+        }
+      } catch (err) {
+        throw throwError(err, 500);
+      }
     },
   });
 
@@ -125,9 +141,7 @@ const routes = function (server) {
   server.route({
     method: 'GET',
     path: '/s/{spacename}/data/{dataname}/feed',
-    handler(request, reply) {
-      reply('RSS FEED PEW PEW PEW');
-    },
+    handler: async (request, h) => h.response('RSS FEED PEW PEW PEW'),
   });
 
   // Update value
@@ -135,46 +149,47 @@ const routes = function (server) {
   server.route({
     method: 'PUT',
     path: '/s/{spacename}/data/{dataname}/update',
-    handler(request, reply) {
+    handler: async (request, h) => {
       // Check input
-      if (request.payload.value === undefined) {
-        request.log.error('Missing value argument');
+      if (request.query.value === undefined) {
+        request.logger.error('Missing value argument');
 
-        return reply('Forbidden - Missing value argument').code(400);
+        // Throw throwError('Forbidden - Missing value argument', 400);
+        throw throwError('Missing value argument', 400);
       }
 
       // Check auth
       if (auth.matchACL(request.url.pathname)) {
-        if ((request.payload.client === undefined) || (request.payload.ts === undefined) || (request.url.query.hash === undefined)) {
-          request.log.error('Missing authorization fields');
+        if ((request.payload === null) || (request.payload.client === undefined) || (request.payload.ts === undefined) || (request.query.hash === undefined)) {
+          request.logger.error('Missing authorization fields');
 
-          return reply('Not Authorized - Missing authorization fields').code(401);
+          throw throwError('Not Authorized - Missing authorization fields', 401);
         }
 
-        const verified = auth.verifyRequest(JSON.stringify(request.payload), request.url.pathname, request.payload.client, request.payload.ts, request.url.query.hash);
+        const verified = auth.verifyRequest(JSON.stringify(request.payload), request.url.pathname, request.payload.client, request.payload.ts, request.query.hash);
 
         if (!verified) {
-          request.log.error('failed HMAC for: [' + request.url.pathname + ']');
+          request.logger.error('failed HMAC for: [' + request.url.pathname + ']');
 
-          return reply('Not Authorized - Failed Authentication').code(403);
+          throw throwError('Not Authorized - Failed Authentication', 403);
         }
       }
 
       const { influx } = request.server.plugins.influx;
 
-      const ds = new Datastore(influx);
+      try {
+        const datastore = new Datastore(influx);
 
-      ds.setIfChanged(request.params.spacename, request.params.dataname, request.payload.value)
-        .then(result => {
-          result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
+        const result = await datastore.setIfChanged(request.params.spacename, request.params.dataname, request.query.value);
 
-          reply({ result, status: 'OK' });
-        })
-        .catch(err => {
-          request.log.error(err);
+        result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
 
-          reply('error').code(500);
-        });
+        return h.response({ result, status: 'OK' });
+      } catch (err) {
+        request.logger.error(err);
+
+        throw throwError('error', 500);
+      }
     },
   });
 
@@ -183,50 +198,50 @@ const routes = function (server) {
   server.route({
     method: 'GET',
     path: '/s/{spacename}/data/{dataname}/update',
-    handler(request, reply) {
+    handler: async (request, h) => {
       // Check for valid input
-      if (request.url.query.value === undefined) {
-        request.log.error('Missing value argument');
+      if (request.query.value === undefined) {
+        request.logger.error('Missing value argument');
 
-        return reply('Forbidden - Missing value argument').code(400);
+        throw throwError('Forbidden - Missing value argument', 403);
       }
 
       // Check auth
       if (auth.matchACL(request.url.pathname)) {
-        if ((request.url.query.client === undefined) || (request.url.query.ts === undefined) || (request.url.query.hash === undefined)) {
-          request.log.error('Missing authorization fields');
+        if ((request.payload === null) || (request.query.client === undefined) || (request.query.ts === undefined) || (request.query.hash === undefined)) {
+          request.logger.error('Missing authorization fields');
 
-          return reply('Not Authorized - Missing authorization fields').code(401);
+          throw throwError('Not Authorized - Missing authorization fields', 401);
         }
 
-        const requestUrl = request.url.pathname + '?value=' + request.url.query.value;
+        const requestUrl = request.url.pathname + '?value=' + request.query.value;
 
-        const verified = auth.verifyRequest(requestUrl, request.url.pathname, request.url.query.client, request.url.query.ts, request.url.query.hash);
+        const verified = auth.verifyRequest(requestUrl, request.url.pathname, request.query.client, request.query.ts, request.query.hash);
 
         if (!verified) {
-          request.log.error('failed HMAC for:');
+          request.logger.error('failed HMAC for:');
 
-          request.log.error(request.url);
+          request.logger.error(request.url);
 
-          return reply('Not Authorized - Failed Authentication').code(403);
+          throw throwError('Not Authorized - Failed Authentication', 403);
         }
       }
 
       const { influx } = request.server.plugins.influx;
 
-      const ds = new Datastore(influx);
+      try {
+        const datastore = new Datastore(influx);
 
-      ds.setIfChanged(request.params.spacename, request.params.dataname, request.url.query.value)
-        .then(result => {
-          result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
+        const result = await datastore.setIfChanged(request.params.spacename, request.params.dataname, request.query.value);
 
-          reply({ result, status: 'OK' });
-        })
-        .catch(err => {
-          request.log.error(err);
+        result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
 
-          reply('Error in query').code(500);
-        });
+        return h.response({ result, status: 'OK' });
+      } catch (err) {
+        request.logger.error(err);
+
+        throw throwError('Error in query', 500);
+      }
     },
   });
 
@@ -235,32 +250,31 @@ const routes = function (server) {
   server.route({
     method: 'GET',
     path: '/s/{spacename}/data/{dataname}.js',
-    handler(request, reply) {
+    handler: async (request, h) => {
       const { influx } = request.server.plugins.influx;
 
-      new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
-        .then(result => {
-          if (result === null) {
-            request.log.error('No results');
+      try {
+        const datastore = new Datastore(influx);
+        const result = await datastore.getLatest(request.params.spacename, request.params.dataname);
 
-            return reply('error').code(404);
-          }
+        if (result === null) {
+          request.logger.error('No results');
 
-          result.space = request.params.spacename;
+          throw throwError('error', 404);
+        }
 
-          server.render('data-widget', { data: result }, {}, (err, rendered) => {
-            if (err) {
-              return reply(err);
-            }
+        result.space = request.params.spacename;
 
-            reply(rendered).header('Content-Type', 'application/javascript');
-          });
-        })
-        .catch(err => {
-          request.log.error(err);
+        const response = h.view('data-widget', { data: result });
 
-          reply('error').code(500);
-        });
+        response.type('application/javascript');
+
+        return response;
+      } catch (err) {
+        request.logger.error(err);
+
+        throw throwError('error', 500);
+      }
     },
   });
 
@@ -268,29 +282,24 @@ const routes = function (server) {
   server.route({
     method: 'GET',
     path: '/s/{spacename}/data/{dataname}/fullpage',
-    handler(request, reply) {
+    handler: async (request, h) => {
       const { influx } = request.server.plugins.influx;
 
-      new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
-        .then(result => {
-          const renderContext = {
-            data: result,
-            space: { name: request.params.spacename },
-          };
+      try {
+        const datastore = new Datastore(influx);
+        const result = await datastore.getLatest(request.params.spacename, request.params.dataname);
 
-          server.render('data-full', renderContext, {}, (err, rendered) => {
-            if (err) {
-              return reply(err);
-            }
+        const renderContext = {
+          data: result,
+          space: { name: request.params.spacename },
+        };
 
-            reply(rendered);
-          });
-        })
-        .catch(err => {
-          request.log.error(err);
+        return h.view('data-full', renderContext, {}).type('text/html');
+      } catch (err) {
+        request.logger.error(err);
 
-          reply('error').code(404);
-        });
+        throwError('error', 404);
+      }
     },
   });
 
@@ -298,42 +307,28 @@ const routes = function (server) {
   server.route({
     method: 'GET',
     path: '/s/{spacename}/data/{dataname1}/{dataname2}/fullpage',
-    handler(request, reply) {
+    handler: async (request, h) => {
       const { influx } = request.server.plugins.influx;
 
-      const ds = new Datastore(influx);
+      try {
+        const datastore = new Datastore(influx);
 
-      let first;
-      let second;
+        const first = await datastore.getLatest(request.params.spacename, request.params.dataname1);
 
-      ds.getLatest(request.params.spacename, request.params.dataname1)
-        .then(data => {
-          first = data;
+        const second = await datastore.getLatest(request.params.spacename, request.params.dataname2);
 
-          return ds.getLatest(request.params.spacename, request.params.dataname2);
-        })
-        .then(data => {
-          second = data;
+        const renderContext = {
+          datapoint1: first,
+          datapoint2: second,
+          space: { name: request.params.spacename },
+        };
 
-          const renderContext = {
-            datapoint1: first,
-            datapoint2: second,
-            space: { name: request.params.spacename },
-          };
+        return h.view('data-dual-full', renderContext, {});
+      } catch (err) {
+        request.logger.error(err);
 
-          server.render('data-dual-full', renderContext, {}, (err, rendered) => {
-            if (err) {
-              return reply(err);
-            }
-
-            reply(rendered);
-          });
-        })
-        .catch(err => {
-          request.log.error(err);
-
-          reply('error').code(404);
-        });
+        throwError('error', 404);
+      }
     },
   });
 
@@ -341,32 +336,29 @@ const routes = function (server) {
   server.route({
     method: 'GET',
     path: '/s/{spacename}/data/{dataname}',
-    handler(request, reply) {
+    handler: async (request, h) => {
       const { influx } = request.server.plugins.influx;
 
-      new Datastore(influx).getLatest(request.params.spacename, request.params.dataname)
-        .then(result => {
-          if (!result) {
-            request.log.error('No results');
+      try {
+        const datastore = new Datastore(influx);
+        const result = await datastore.getLatest(request.params.spacename, request.params.dataname);
 
-            return reply('error').code(404);
-          }
+        if (!result) {
+          request.logger.error('No results');
 
-          server.render('data', { space: request.params.spacename, data: result }, {}, (err, rendered) => {
-            if (err) {
-              return reply(err);
-            }
+          throw throwError('error', 404);
+        }
 
-            reply(rendered);
-          });
-        })
-        .catch(err => {
-          request.log.error(err);
+        const responseData = { space: request.params.spacename, data: result };
 
-          reply('error').code(404);
-        });
+        responseData.data.last_updated = new Date(result.last_updated).toISOString();
+
+        return h.view('data', responseData, {});
+      } catch (err) {
+        request.logger.error(err);
+
+        throwError('error', 404);
+      }
     },
   });
 };
-
-module.exports = routes;

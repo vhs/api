@@ -2,28 +2,24 @@
 
 const Influx = require('influx');
 
-exports.register = function (plugin, options, next) {
-  const defaults = {
-    host: 'localhost',
-    port: 8086,
-    username: '',
-    password: '',
-    protocol: 'http',
-    database: 'api',
-  };
-
-  options = Object.assign(defaults, options);
-
-  // eslint-disable-next-line new-cap
-  const influx = Influx(options);
-
-  plugin.expose('influx', influx);
-
-  plugin.log(['hapi-influx', 'info'], 'InfluxDB connection created');
-
-  return next();
-};
-
-exports.register.attributes = {
+module.exports = {
   name: 'influx',
+  async register(server, options) {
+    const defaults = {
+      host: 'localhost',
+      port: 8086,
+      username: '',
+      password: '',
+      protocol: 'http',
+      database: 'api',
+    };
+
+    options = Object.assign(defaults, options);
+
+    const influx = new Influx.InfluxDB(options);
+
+    server.expose('influx', influx);
+
+    server.log(['hapi-influx', 'info'], 'InfluxDB connection created');
+  },
 };
