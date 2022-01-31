@@ -4,7 +4,8 @@
   "description": "A simple metric'ish API with no auth backed by Redis",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
