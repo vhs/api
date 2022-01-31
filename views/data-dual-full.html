@@ -1,47 +1,51 @@
 {{#extend "main"}}
-  {{#content "head" mode="append"}}
-    <style type="text/css">
-        h1 {
-            font-size: 144pt;
-            -webkit-margin-after: 100px;
-        }
-        h2 {
-            font-size: 49pt;
-            text-align: right;
-            margin-right: 9px;
-        }
-        #fact {
-            position: fixed;
-            left: 50%;
-            margin-left: -250px;
-            top: 40%;
-            margin-top: -50px;
-        }
-        #facttime {
-            margin-top: 16px;
-            margin-right: 11px;
-        }
-        .footer {
-            position: fixed;
-            bottom: 0px;
-        }
-           
-    </style>
-  {{/content}}
-  {{#content "body"}}
-    <div class="container">
-      <div id="fact">
-        <h1>{{datapoint1.value}}</h1>
-        <h2>{{datapoint2.value}}</h2>
-        <div id="facttime" class="label pull-right">As of <abbr class="timeago" title="{{datapoint1.datetime}}">{{datapoint1.last_updated}}</abbr></div>
-      </div>
-    </div>
-  {{/content}}
-  {{#content "footer"}}
-      <div class="container">
-        <p class="pull-right">
-          <a href="http://api.vanhack.ca">VHS API</a>
-        </p>
-      </div>
-  {{/content}}
+{{#content "head" mode="append"}}
+<style type="text/css">
+  h1 {
+    font-size: 144pt;
+    -webkit-margin-after: 100px;
+  }
+
+  h2 {
+    font-size: 49pt;
+    text-align: right;
+    margin-right: 9px;
+  }
+
+  #fact {
+    position: fixed;
+    left: 50%;
+    margin-left: -250px;
+    top: 40%;
+    margin-top: -50px;
+  }
+
+  #facttime {
+    margin-top: 16px;
+    margin-right: 11px;
+  }
+
+  .footer {
+    position: fixed;
+    bottom: 0px;
+  }
+</style>
+{{/content}}
+{{#content "body"}}
+<div class="container">
+  <div id="fact">
+    <h1>{{datapoint1.value}}</h1>
+    <h2>{{datapoint2.value}}</h2>
+    <div id="facttime" class="label pull-right">As of <time class="timeago"
+        datetime="{{datapoint1.datetime}}">{{datapoint1.last_updated}}</time></div>
+  </div>
+</div>
+{{/content}}
+{{#content "footer"}}
+<div class="container">
+  <p class="pull-right">
+    <a href="https://api.vanhack.ca">VHS API</a>
+  </p>
+</div>
+{{/content}}
 {{/extend}}

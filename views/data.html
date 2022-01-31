@@ -1,25 +1,27 @@
 {{#extend "main"}}
-  {{#content "body" mode="append"}}
-  <div class="container">
-<div class="row">
+{{#content "body" mode="append"}}
+<div class="container">
+  <div class="row">
     <h2>{{space}} - {{data.name}}</h2>
     <div class="well">
       <h3>Current value: {{data.value}}
         <small>
-          Last updated: <abbr class="timeago" title="{{data.last_updated}}">{{data.last_updated}}</abbr>
+          Last updated: <time class="timeago" datetime="{{data.last_updated}}">{{data.last_updated}}</time>
         </small>
       </h3>
-      <p class="lead">You can also fetch this value as <a href="{{data.name}}.json">JSON</a> or <a href="{{data.name}}.txt">text</a>.</p>
+      <p class="lead">You can also fetch this value as <a href="{{data.name}}.json">JSON</a> or <a
+          href="{{data.name}}.txt">text</a>.</p>
       <p>To dynamically embed the value of this data in your site, include the following code snippet:
-<pre>
+      <pre>
   &lt;div id="{{space}}-{{data.name}}">&lt;/div>
-  &lt;script src="http://api.vanhack.ca/s/{{space}}/data/{{data.name}}.js" >&lt;/script>
+  &lt;script src="https://api.vanhack.ca/s/{{space}}/data/{{data.name}}.js" >&lt;/script>
 </pre>
-  <em>(You will need jQuery loaded on the including page.  You could also consider using <a href="http://timeago.yarp.com/">Timeago.js</a> to improve the formatting of the date.)</em>
-</p>
-                
+      <em>(You will need jQuery loaded on the including page. You could also consider using <a
+          href="https://timeago.yarp.com/">Timeago.js</a> to improve the formatting of the date.)</em>
+      </p>
 
-  </div><!-- .row -->
+
+    </div><!-- .row -->
   </div><!-- .container -->
   {{/content}}
-{{/extend}}
+  {{/extend}}
