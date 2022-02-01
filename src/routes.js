@@ -3,7 +3,7 @@ const Boom = require('@hapi/boom');
 
 const Datastore = require('./datastore');
 
-const throwError = function (err, statusCode) {
+const generateError = function (err, statusCode) {
   statusCode = statusCode || 500;
 
   const errInst = Boom.badRequest(err);
@@ -31,7 +31,7 @@ module.exports = function (server) {
           spaces: summary,
         });
       } catch (err) {
-        throw throwError(err);
+        throw generateError(err);
       }
     },
   });
@@ -78,7 +78,7 @@ module.exports = function (server) {
       } catch (err) {
         request.logger.error(err);
 
-        throw throwError('error', 404);
+        throw generateError('error', 404);
       }
     },
   });
@@ -125,7 +125,7 @@ module.exports = function (server) {
       } catch (err) {
         request.logger.error(err);
 
-        throw throwError('error', 404);
+        throw generateError('error', 404);
       }
     },
   });
@@ -144,7 +144,7 @@ module.exports = function (server) {
         if (result === undefined) {
           request.logger.error('No results');
 
-          throwError('error', 404);
+          throw generateError('error', 404);
         } else {
           result.last_updated = Math.round(Date.parse(result.last_updated) / 1000);
 
@@ -155,7 +155,7 @@ module.exports = function (server) {
           return response;
         }
       } catch (err) {
-        throw throwError(err, 500);
+        throw generateError(err, 500);
       }
     },
   });
@@ -179,7 +179,7 @@ module.exports = function (server) {
           return response;
         }
       } catch (err) {
-        throw throwError(err, 500);
+        throw generateError(err, 500);
       }
     },
   });
@@ -202,7 +202,7 @@ module.exports = function (server) {
         request.logger.error('Missing value argument');
 
         // Throw throwError('Forbidden - Missing value argument', 400);
-        throw throwError('Missing value argument', 400);
+        throw generateError('Missing value argument', 400);
       }
 
       // Check auth
@@ -210,7 +210,7 @@ module.exports = function (server) {
         if ((request.payload === null) || (request.payload.client === undefined) || (request.payload.ts === undefined) || (request.query.hash === undefined)) {
           request.logger.error('Missing authorization fields');
 
-          throw throwError('Not Authorized - Missing authorization fields', 401);
+          throw generateError('Not Authorized - Missing authorization fields', 401);
         }
 
         const verified = auth.verifyRequest(JSON.stringify(request.payload), request.url.pathname, request.payload.client, request.payload.ts, request.query.hash);
@@ -218,7 +218,7 @@ module.exports = function (server) {
         if (!verified) {
           request.logger.error('failed HMAC for: [' + request.url.pathname + ']');
 
-          throw throwError('Not Authorized - Failed Authentication', 403);
+          throw generateError('Not Authorized - Failed Authentication', 403);
         }
       }
 
@@ -235,7 +235,7 @@ module.exports = function (server) {
       } catch (err) {
         request.logger.error(err);
 
-        throw throwError('error', 500);
+        throw generateError('error', 500);
       }
     },
   });
@@ -250,7 +250,7 @@ module.exports = function (server) {
       if (request.query.value === undefined) {
         request.logger.error('Missing value argument');
 
-        throw throwError('Forbidden - Missing value argument', 403);
+        throw generateError('Forbidden - Missing value argument', 403);
       }
 
       // Check auth
@@ -258,7 +258,7 @@ module.exports = function (server) {
         if ((request.payload === null) || (request.query.client === undefined) || (request.query.ts === undefined) || (request.query.hash === undefined)) {
           request.logger.error('Missing authorization fields');
 
-          throw throwError('Not Authorized - Missing authorization fields', 401);
+          throw generateError('Not Authorized - Missing authorization fields', 401);
         }
 
         const requestUrl = request.url.pathname + '?value=' + request.query.value;
@@ -270,7 +270,7 @@ module.exports = function (server) {
 
           request.logger.error(request.url);
 
-          throw throwError('Not Authorized - Failed Authentication', 403);
+          throw generateError('Not Authorized - Failed Authentication', 403);
         }
       }
 
@@ -287,7 +287,7 @@ module.exports = function (server) {
       } catch (err) {
         request.logger.error(err);
 
-        throw throwError('Error in query', 500);
+        throw generateError('Error in query', 500);
       }
     },
   });
@@ -307,7 +307,7 @@ module.exports = function (server) {
         if (result === null) {
           request.logger.error('No results');
 
-          throw throwError('error', 404);
+          throw generateError('error', 404);
         }
 
         result.space = request.params.spacename;
@@ -320,7 +320,7 @@ module.exports = function (server) {
       } catch (err) {
         request.logger.error(err);
 
-        throw throwError('error', 500);
+        throw generateError('error', 500);
       }
     },
   });
@@ -345,7 +345,7 @@ module.exports = function (server) {
       } catch (err) {
         request.logger.error(err);
 
-        throwError('error', 404);
+        throw generateError('error', 404);
       }
     },
   });
@@ -374,7 +374,7 @@ module.exports = function (server) {
       } catch (err) {
         request.logger.error(err);
 
-        throwError('error', 404);
+        throw generateError('error', 404);
       }
     },
   });
@@ -393,7 +393,7 @@ module.exports = function (server) {
         if (!result) {
           request.logger.error('No results');
 
-          throw throwError('error', 404);
+          throw generateError('error', 404);
         }
 
         const responseData = { space: request.params.spacename, data: result };
@@ -404,7 +404,7 @@ module.exports = function (server) {
       } catch (err) {
         request.logger.error(err);
 
-        throwError('error', 404);
+        throw generateError('error', 404);
       }
     },
   });
