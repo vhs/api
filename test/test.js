@@ -5,9 +5,9 @@ const axios = require('axios');
 const debug = require('debug')('vhs-api:test');
 const { getLine } = require('../utils');
 
-const baseUrl = 'http://localhost:8000';
-const clientName = 'test1';
-const clientSecret = 'teststring';
+const baseUrl = process.env.VHS_API_ENDPOINT || 'http://localhost:8000';
+const clientName = process.env.VHS_API_CLIENT || 'test1';
+const clientSecret = process.env.VHS_API_SECRET || 'teststring';
 
 describe('Test the test endpoint', () => {
   it('test the GET', async () => {

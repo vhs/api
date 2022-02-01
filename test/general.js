@@ -1,15 +1,16 @@
 'use strict';
 
-const CryptoJS = require('crypto-js');
 const axios = require('axios');
 const debug = require('debug')('vhs-api:test');
 const { getLine } = require('../utils');
 
-const baseUrl = 'http://localhost:8000';
+const baseUrl = process.env.VHS_API_ENDPOINT || 'http://localhost:8000';
+const dataSpace = process.env.VHS_API_DATASPACE || 'vhs';
+const dataPoint = process.env.VHS_API_DATAPOINT || 'food';
 
-describe('Test the food data point', () => {
+describe('Test the ' + dataPoint + ' data point', () => {
   it('test the GET', async () => {
-    const requestURI = '/s/vhs/data/food.json';
+    const requestURI = '/s/' + dataSpace + '/data/' + dataPoint + '.json';
 
     const requestUrl = baseUrl + requestURI;
 
@@ -33,7 +34,7 @@ describe('Test the food data point', () => {
   });
 
   it('test update with GET', async () => {
-    const requestURI = '/s/vhs/data/food/update?value=mild';
+    const requestURI = '/s/' + dataSpace + '/data/' + dataPoint + '/update?value=mild';
 
     const requestUrl = baseUrl + requestURI;
 
@@ -55,7 +56,7 @@ describe('Test the food data point', () => {
   });
 
   it('test update with PUT', async () => {
-    const requestURI = '/s/vhs/data/food/update?value=spicy';
+    const requestURI = '/s/' + dataSpace + '/data/' + dataPoint + '/update?value=spicy';
 
     const requestUrl = baseUrl + requestURI;
 
