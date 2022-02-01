@@ -1,24 +1,25 @@
 'use strict';
-var Influx = require('influx');
 
-exports.register = function(plugin, options, next) {
-    var defaults;
-    defaults = {
-        host: 'localhost',
-        port: 8086,
-        username: '',
-        password: '',
-        protocol : 'http',
-        database: 'api'
+const Influx = require('influx');
+
+module.exports = {
+  name: 'influx',
+  async register(server, options) {
+    const defaults = {
+      host: 'localhost',
+      port: 8086,
+      username: '',
+      password: '',
+      protocol: 'http',
+      database: 'api',
     };
 
     options = Object.assign(defaults, options);
-    var influx = Influx(options);
-    plugin.expose('influx', influx);
-    plugin.log(['hapi-influx', 'info'], 'InfluxDB connection created');
-    return next();
-};
 
-exports.register.attributes = {
-    name: 'influx'
+    const influx = new Influx.InfluxDB(options);
+
+    server.expose('influx', influx);
+
+    server.log(['hapi-influx', 'info'], 'InfluxDB connection created');
+  },
 };

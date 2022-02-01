@@ -1,10 +1,11 @@
 {{#extend "main" }}
-  {{#content "body" mode="append"}}
-  <div class="container">
+{{#content "body" mode="append"}}
+<div class="container">
   <div class="row">
     <div class="well">
       <p class="lead">
-        This project exists to create a simple API that devices at the <a href="http://vanhack.ca">Vancouver Hack Space</a> can use to communicate with other systems.
+        This project exists to create a simple API that devices at the <a href="https://vanhack.ca">Vancouver Hack
+          Space</a> can use to communicate with other systems.
       </p>
     </div>
     <h2>Hackerspace Data</h2>
@@ -12,19 +13,20 @@
     <h3>{{name}}</h3>
     <table class="table">
       <tr>
-        <th>Data point</th><th>Value</th><th>Updated</th>
+        <th>Data point</th>
+        <th>Value</th>
+        <th>Updated</th>
       </tr>
       {{#each members}}
-        <tr class="table-striped">
-          <td><a href="/s/{{../name}}/data/{{name}}">{{name}}</a></td>
-          <td>{{value}}</td>
-          <td><abbr class="timeago" title="{{last_updated}}">{{last_updated}}</abbr></td>
-        </tr>
+      <tr class="table-striped">
+        <td><a href="/s/{{../name}}/data/{{name}}">{{name}}</a></td>
+        <td>{{value}}</td>
+        <td><time class="timeago" datetime="{{last_updated}}">{{last_updated}}</time></td>
+      </tr>
       {{/each}}
     </table>
-  {{/each}}
+    {{/each}}
   </div>
-  </div>
-  {{/content}}
+</div>
+{{/content}}
 {{/extend}}
-
