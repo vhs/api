@@ -83,6 +83,53 @@ module.exports = function (server) {
     },
   });
 
+  // That last 100 values this data poin has had
+  server.route({
+    method: 'GET',
+    path: '/s/{spacename}/data/{dataname}/history.json',
+    handler: async (request, h) => {
+      let limit = 100;
+      let offset = 0;
+
+      if (request.query.offset !== undefined && typeof parseInt(request.query.offset) === 'number') {
+        offset = parseInt(request.query.offset);
+      }
+
+      if (request.query.limit !== undefined && typeof parseInt(request.query.limit) === 'number') {
+        limit = parseInt(request.query.limit);
+      }
+
+      const { influx } = request.server.plugins.influx;
+
+      try {
+        const datastore = new Datastore(influx);
+
+        const data = await datastore.getHistory(request.params.spacename, request.params.dataname, offset, limit);
+
+        if (data) {
+          data.forEach(i => {
+            i.last_updated = Math.round(Date.parse(i.last_updated) / 1000);
+          });
+        }
+
+        const response = h.response({
+          offset,
+          limit,
+          count: data.length,
+          data,
+        });
+
+        response.type('application/json');
+
+        return response;
+      } catch (err) {
+        request.logger.error(err);
+
+        throw throwError('error', 404);
+      }
+    },
+  });
+
   // The latest value of this data point
   server.route({
     method: 'GET',
