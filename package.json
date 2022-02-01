@@ -27,10 +27,8 @@
     "debug": "^4.3.3",
     "handlebars": "^4.7.7",
     "handlebars-layouts": "^3.1.0",
-    "hapi-bunyan": "^0.7.0",
     "hapi-pino": "^9.1.1",
     "influx": "^5.9.2",
-    "path-to-regexp": "^6.2.0",
     "pino-pretty": "^7.5.1"
   },
   "devDependencies": {
