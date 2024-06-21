@@ -24,7 +24,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ secrets.DOCKERHUB_TEMPLATE }}
+          images: ${{ vars.DOCKERHUB_TEMPLATE }}
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -38,5 +38,5 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}, ${{ secrets.DOCKERHUB_TEMPLATE }}:latest
+          tags: ${{ steps.meta.outputs.tags }}, ${{ vars.DOCKERHUB_TEMPLATE }}:latest
           labels: ${{ steps.meta.outputs.labels }}
