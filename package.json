@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/vhs/api#readme",
   "dependencies": {
-    "@hapi/hapi": "^20.2.1",
+    "@hapi/hapi": "^21.4.8",
     "@hapi/inert": "^6.0.5",
     "@hapi/vision": "^6.1.0",
     "bunyan": "^1.4.0",
